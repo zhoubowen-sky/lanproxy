@@ -15,7 +15,7 @@
 <body>
 <div class="layui-layout layui-layout-admin">
     <div class="layui-header">
-        <div class="layui-logo">共济科技 - 远程维护</div>
+        <div class="layui-logo">共济科技 - 远程维护中心</div>
         <ul class="layui-nav layui-layout-right">
             <li class="layui-nav-item"><a href="javascript:;"
                                           class="logout"></a></li>
@@ -39,20 +39,20 @@
 
     function api_invoke(uri, params, callback) {
         var index = layer.load(1, {
-            shade : [ 0.1, '#fff' ]
+            shade: [0.1, '#fff']
         });
         $.ajax({
-            url : uri,
-            data : JSON.stringify(params),
-            type : 'POST',
-            cache : false,
-            dataType : 'json',
-            contentType : "application/json; charset=utf-8",
-            success : function(data) {
+            url: uri,
+            data: JSON.stringify(params),
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
                 layer.close(index);
                 callback(data);
             },
-            error : function(XMLHttpRequest, textStatus, errorThrown) {
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
                 layer.close(index);
                 if ("undefined" == typeof (XMLHttpRequest.responseJSON)) {
                     layer.alert("System error, please try again later.");
@@ -63,7 +63,7 @@
                     location.href = "/";
                 } else {
                     layer.alert(XMLHttpRequest.responseJSON.message);
-                    api_invoke("/config/detail", {}, function(data) {
+                    api_invoke("/config/detail", {}, function (data) {
                         clientList = data.data;
                     });
                 }
@@ -88,9 +88,9 @@
         return re.test(port);
     }
 
-    $(function() {
+    $(function () {
         if (window.history && window.history.pushState) {
-            $(window).on('popstate', function() {
+            $(window).on('popstate', function () {
                 window.history.pushState('forward', null, '#');
                 window.history.forward(1);
             });
@@ -102,34 +102,40 @@
             History.pushState('forward', null, '?state=2');
             window.history.forward(1);
         }
-        window.onhashchange = function() {
+        window.onhashchange = function () {
             History.pushState('forward', null, '?state=1');
         }
 
-        $(".logout").click(function() {
-            api_invoke("/logout", {}, function(data) {
+        $(".logout").click(function () {
+            api_invoke("/logout", {}, function (data) {
                 location.href = "/";
             })
         });
 
     });
+
     function update_menu() {
-        api_invoke("/config/detail", {}, function(data) {
+        api_invoke("/config/detail", {}, function (data) {
             if (data.code == 20000) {
                 clientList = data.data;
                 var html = template($("#menu-tpl").html(), {
-                    list : clientList
+                    list: clientList
                 });
                 $(".layui-side-scroll").html(html);
-                layui.use('element', function() {
+                layui.use('element', function () {
                     var element = layui.element;
                 });
                 $(".client-list").html($.i18n.prop('menu.client.list'));
                 $(".client-list-sub").html($.i18n.prop('menu.client.list'));
                 $(".client-add").html($.i18n.prop('menu.client.add'));
+
+
                 $(".client-config").html($.i18n.prop('menu.client.config'));
+
+
                 $(".statistics").html($.i18n.prop('menu.client.statistics'));
-                $(".menu-item").click(function() {
+                $(".users").html($.i18n.prop('menu.client.users'));
+                $(".menu-item").click(function () {
                     window.clientIndex = $(this).attr("data-index");
                     load_page("html/lan/list.html");
                 });
@@ -141,7 +147,7 @@
 
 
     var i18nLanguage = "en";
-    var webLanguage = [ 'zh-CN', 'en' ];
+    var webLanguage = ['zh-CN', 'en'];
 
     function initWebLanguage() {
         var navLanguage = navigator.language;
@@ -156,16 +162,16 @@
     initWebLanguage();
 
     jQuery.i18n.properties({
-        name : 'lang', //资源文件名称
-        path : '/i18n/', //资源文件路径
-        mode : 'map', //用Map的方式使用资源文件中的值
-        language : i18nLanguage,
+        name: 'lang', //资源文件名称
+        path: '/i18n/', //资源文件路径
+        mode: 'map', //用Map的方式使用资源文件中的值
+        language: i18nLanguage,
         encoding: 'UTF-8',
-        callback : function() {//加载成功后设置显示内容
+        callback: function () {//加载成功后设置显示内容
             $('title').html($.i18n.prop('title'));
             $(".layui-footer").html($.i18n.prop('title'));
             $(".logout").html($.i18n.prop('logout'));
-            layui.use('layer', function() {
+            layui.use('layer', function () {
                 window.layer = layui.layer;
                 update_menu();
                 load_page("html/client/list.html");
@@ -196,8 +202,11 @@
                 <%}%>
             </dl>
         </li>
-        <li class="layui-nav-item layui-nav-itemed"><a class="statistics"
-                                                       href="javascript:load_page('html/statistics/list.html');"></a>
+        <li class="layui-nav-item layui-nav-itemed">
+            <a class="statistics" href="javascript:load_page('html/statistics/list.html');"></a>
+        </li>
+        <li class="layui-nav-item layui-nav-itemed">
+            <a class="users" href="javascript:load_page('html/users/list.html');"></a>
         </li>
     </ul>
 </script>
