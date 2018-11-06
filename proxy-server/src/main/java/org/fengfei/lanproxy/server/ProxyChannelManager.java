@@ -219,7 +219,7 @@ public class ProxyChannelManager {
     /**
      * 增加用户连接与代理客户端连接关系
      *
-     * @param proxyChannel
+     * @param cmdChannel
      * @param userId
      * @param userChannel
      */
@@ -234,7 +234,7 @@ public class ProxyChannelManager {
     /**
      * 删除用户连接与代理客户端连接关系
      *
-     * @param proxyChannel
+     * @param cmdChannel
      * @param userId
      * @return
      */
@@ -251,7 +251,7 @@ public class ProxyChannelManager {
     /**
      * 根据代理客户端连接与用户编号获取用户连接
      *
-     * @param proxyChannel
+     * @param cmdChannel
      * @param userId
      * @return
      */
