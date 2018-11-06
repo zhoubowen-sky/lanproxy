@@ -66,10 +66,8 @@ public class Config {
     }
 
     /**
-     * 获得配置项。
-     *
+     * 获得配置项
      * @param key 配置关键字
-     *
      * @return 配置项
      */
     public String getStringValue(String key) {

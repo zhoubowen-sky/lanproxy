@@ -5,7 +5,11 @@ import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.charset.Charset;
 
+import org.fengfei.lanproxy.common.Config;
 import org.fengfei.lanproxy.common.JsonUtil;
+import org.fengfei.lanproxy.server.config.ProxyConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -29,14 +33,14 @@ import io.netty.handler.stream.ChunkedNioFile;
 
 public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-    private static final String PAGE_FOLDER = System.getProperty("app.home", System.getProperty("user.dir"))
-            + "/webpages";
+    private static Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
+
+    private static final String PAGE_FOLDER = System.getProperty("app.home", System.getProperty("user.dir")) + "/webpages";
 
     private static final String SERVER_VS = "LPS-0.1";
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-
         // GET返回页面；POST请求接口
         if (request.getMethod() != HttpMethod.POST) {
             outputPages(ctx, request);
@@ -46,12 +50,10 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         ResponseInfo responseInfo = ApiRoute.run(request);
 
         // 错误码规则：除100取整为http状态码
-        outputContent(ctx, request, responseInfo.getCode() / 100, JsonUtil.object2json(responseInfo),
-                "Application/json;charset=utf-8");
+        outputContent(ctx, request, responseInfo.getCode() / 100, JsonUtil.object2json(responseInfo), "Application/json;charset=utf-8");
     }
 
-    private void outputContent(ChannelHandlerContext ctx, FullHttpRequest request, int code, String content,
-            String mimeType) {
+    private void outputContent(ChannelHandlerContext ctx, FullHttpRequest request, int code, String content, String mimeType) {
 
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(code),
                 Unpooled.wrappedBuffer(content.getBytes(Charset.forName("UTF-8"))));
@@ -77,12 +79,20 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         URI uri = new URI(request.getUri());
         String uriPath = uri.getPath();
         uriPath = uriPath.equals("/") ? "/index.html" : uriPath;
-        String path = PAGE_FOLDER + uriPath;
+        String path = "";
+        if (ProxyConfig.getInstance().getRunningMode().equals("release")){
+            logger.info("当前运行模式为 release");
+             path = PAGE_FOLDER + uriPath;
+        }else {
+            path =  ProxyConfig.getInstance().getWebPath() + uriPath;
+            logger.info("当前运行模式为 debug");
+        }
         File rfile = new File(path);
         if (rfile.isDirectory()) {
             path = path + "/index.html";
             rfile = new File(path);
         }
+        logger.info("前端文件存储路径:"+path);
 
         if (!rfile.exists()) {
             status = HttpResponseStatus.NOT_FOUND;

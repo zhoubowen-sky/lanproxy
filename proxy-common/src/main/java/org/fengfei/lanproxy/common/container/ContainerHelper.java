@@ -32,7 +32,6 @@ public class ContainerHelper {
             public void run() {
 
                 synchronized (ContainerHelper.class) {
-
                     // 停止所有容器.
                     stopContainers();
                     running = false;

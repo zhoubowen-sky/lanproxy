@@ -25,10 +25,9 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 
 /**
- * 接口实现
+ * API 接口实现
  *
  * @author fengfei
- *
  */
 public class RouteConfig {
 
@@ -36,17 +35,19 @@ public class RouteConfig {
 
     private static Logger logger = LoggerFactory.getLogger(RouteConfig.class);
 
-    /** 管理员不能同时在多个地方登录 */
+    /**
+     * 管理员不能同时在多个地方登录
+     */
     private static String token;
 
     public static void init() {
 
         ApiRoute.addMiddleware(new RequestMiddleware() {
-
             @Override
             public void preRequest(FullHttpRequest request) {
                 String cookieHeader = request.headers().get(HttpHeaders.Names.COOKIE);
                 boolean authenticated = false;
+
                 if (cookieHeader != null) {
                     String[] cookies = cookieHeader.split(";");
                     for (String cookie : cookies) {
@@ -77,7 +78,6 @@ public class RouteConfig {
 
         // 获取配置详细信息
         ApiRoute.addRoute("/config/detail", new RequestHandler() {
-
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 List<Client> clients = ProxyConfig.getInstance().getClients();
@@ -95,7 +95,6 @@ public class RouteConfig {
 
         // 更新配置
         ApiRoute.addRoute("/config/update", new RequestHandler() {
-
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -118,8 +117,8 @@ public class RouteConfig {
             }
         });
 
+        // 登录 TODO 此处需要支持多帐号以及新增用户
         ApiRoute.addRoute("/login", new RequestHandler() {
-
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -127,14 +126,15 @@ public class RouteConfig {
                 String config = new String(buf);
                 Map<String, String> loginParams = JsonUtil.json2object(config, new TypeToken<Map<String, String>>() {
                 });
+
                 if (loginParams == null) {
-                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error login info");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "参数异常");
                 }
 
                 String username = loginParams.get("username");
                 String password = loginParams.get("password");
                 if (username == null || password == null) {
-                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error username or password");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
                 }
 
                 if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
@@ -142,12 +142,11 @@ public class RouteConfig {
                     return ResponseInfo.build(token);
                 }
 
-                return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error username or password");
+                return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
             }
         });
 
         ApiRoute.addRoute("/logout", new RequestHandler() {
-
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 token = null;
@@ -156,7 +155,6 @@ public class RouteConfig {
         });
 
         ApiRoute.addRoute("/metrics/get", new RequestHandler() {
-
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 return ResponseInfo.build(MetricsCollector.getAllMetrics());
@@ -164,7 +162,6 @@ public class RouteConfig {
         });
 
         ApiRoute.addRoute("/metrics/getandreset", new RequestHandler() {
-
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 return ResponseInfo.build(MetricsCollector.getAndResetAllMetrics());

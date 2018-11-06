@@ -65,7 +65,6 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
     public void start() {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
-
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast(new ProxyMessageDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP));
@@ -78,7 +77,9 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
         try {
             bootstrap.bind(ProxyConfig.getInstance().getServerBind(), ProxyConfig.getInstance().getServerPort()).get();
             logger.info("proxy server start on port " + ProxyConfig.getInstance().getServerPort());
+
         } catch (Exception ex) {
+            logger.error("proxy server start failed:" + ex.getMessage());
             throw new RuntimeException(ex);
         }
 
@@ -88,6 +89,7 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
             initializeSSLTCPTransport(host, port, new SslContextCreator().initSSLContext());
         }
 
+        // 连同已经配置了的客户端端口一同启动 且与上述主程序参数不同
         startUserPort();
 
     }
@@ -125,7 +127,6 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
     private void startUserPort() {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
-
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addFirst(new BytesMetricsHandler());
@@ -139,10 +140,11 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
                 bootstrap.bind(port).get();
                 logger.info("bind user port " + port);
             } catch (Exception ex) {
-
                 // BindException表示该端口已经绑定过
                 if (!(ex.getCause() instanceof BindException)) {
                     throw new RuntimeException(ex);
+                }else {
+                    logger.warn("端口已经绑定过了:"+port);
                 }
             }
         }

@@ -25,35 +25,30 @@ public class WebConfigContainer implements Container {
     private NioEventLoopGroup serverBossGroup;
 
     public WebConfigContainer() {
-
-        // 配置管理，并发处理很小，使用单线程处理网络事件
+        // 配置管理 不会有大批量的更新配置的场景 使用单线程处理网络事件
         serverBossGroup = new NioEventLoopGroup(1);
         serverWorkerGroup = new NioEventLoopGroup(1);
-
     }
 
     @Override
     public void start() {
         ServerBootstrap httpServerBootstrap = new ServerBootstrap();
-        httpServerBootstrap.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-
+        httpServerBootstrap.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
-
                         pipeline.addLast(new HttpServerCodec());
                         pipeline.addLast(new HttpObjectAggregator(64 * 1024));
                         pipeline.addLast(new ChunkedWriteHandler());
                         pipeline.addLast(new HttpRequestHandler());
                     }
                 });
-
         try {
-            httpServerBootstrap.bind(ProxyConfig.getInstance().getConfigServerBind(),
-                    ProxyConfig.getInstance().getConfigServerPort()).get();
+            httpServerBootstrap.bind(ProxyConfig.getInstance().getConfigServerBind(), ProxyConfig.getInstance().getConfigServerPort()).get();
             logger.info("http server start on port " + ProxyConfig.getInstance().getConfigServerPort());
+
         } catch (Exception ex) {
+            logger.error("启动 http 服务出错:" + ex.getMessage());
             throw new RuntimeException(ex);
         }
 

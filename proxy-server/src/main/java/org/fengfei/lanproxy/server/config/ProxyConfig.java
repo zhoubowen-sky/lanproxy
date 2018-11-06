@@ -22,17 +22,17 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * server config
- *
- * @author fengfei
- *
+ * 用于管理客户端所有的 IP Port Key 的配置信息
+ * 负责解析配置文件 更新配置文件
  */
 public class ProxyConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     // TODO 此处需要优化 此类生成数据需要有专门的位置存放
-    /** 配置文件为config.json 客户端信息的配置 */
+    /**
+     * 配置文件为config.json 客户端信息的配置
+     */
     public static final String CONFIG_FILE;
 
     private static Logger logger = LoggerFactory.getLogger(ProxyConfig.class);
@@ -44,45 +44,81 @@ public class ProxyConfig implements Serializable {
         if (!file.isDirectory()) {
             file.mkdir();
         }
-
         CONFIG_FILE = dataPath + "/config.json";
     }
 
-    /** 代理服务器绑定主机host */
+    /**
+     * 运行模式 debug release
+     */
+    private String runningMode;
+
+    /**
+     * 前端页面的路径
+     */
+    private String webPath;
+
+    /**
+     * 代理服务器绑定主机host
+     */
     private String serverBind;
 
-    /** 代理服务器与代理客户端通信端口 */
+    /**
+     * 代理服务器与代理客户端通信端口
+     */
     private Integer serverPort;
 
-    /** 配置服务绑定主机host */
+    /**
+     * 配置服务绑定主机host
+     */
     private String configServerBind;
 
-    /** 配置服务端口 */
+    /**
+     * 配置服务端口
+     */
     private Integer configServerPort;
 
     // TODO 此处需要支持多用户
-    /** 配置服务管理员用户名 */
+    /**
+     * 配置服务管理员用户名
+     */
     private String configAdminUsername;
 
-    /** 配置服务管理员密码 */
+    /**
+     * 配置服务管理员密码
+     */
     private String configAdminPassword;
 
-    /** 代理客户端，支持多个客户端 */
+    /**
+     * 代理客户端，支持多个客户端
+     */
     private List<Client> clients;
 
-    /** 更新配置后保证在其他线程即时生效 */
-    private static ProxyConfig instance = new ProxyConfig();;
+    /**
+     * 更新配置后保证在其他线程即时生效
+     */
+    private static ProxyConfig instance = new ProxyConfig();
+    ;
 
-    /** 代理服务器为各个代理客户端（key）开启对应的端口列表（value） */
+    /**
+     * 代理服务器为各个代理客户端（key）开启对应的端口列表（value）
+     */
     private volatile Map<String, List<Integer>> clientInetPortMapping = new HashMap<String, List<Integer>>();
 
-    /** 代理服务器上的每个对外端口（key）对应的代理客户端背后的真实服务器信息（value） */
+    /**
+     * 代理服务器上的每个对外端口（key）对应的代理客户端背后的真实服务器信息（value）
+     */
     private volatile Map<Integer, String> inetPortLanInfoMapping = new HashMap<Integer, String>();
 
-    /** 配置变化监听器 */
+    /**
+     * 配置变化监听器
+     */
     private List<ConfigChangedListener> configChangedListeners = new ArrayList<ConfigChangedListener>();
 
     private ProxyConfig() {
+
+        // 运行模式
+        this.runningMode = Config.getInstance().getStringValue("running.mode", "release");
+        this.webPath = Config.getInstance().getStringValue("web.path");
 
         // 代理服务器主机和端口配置初始化
         this.serverPort = Config.getInstance().getIntValue("server.port");
@@ -96,16 +132,32 @@ public class ProxyConfig implements Serializable {
         this.configAdminUsername = Config.getInstance().getStringValue("config.admin.username");
         this.configAdminPassword = Config.getInstance().getStringValue("config.admin.password");
 
-        logger.info(
-                "config init serverBind {}, serverPort {}, configServerBind {}, configServerPort {}, configAdminUsername {}, configAdminPassword {}",
-                serverBind, serverPort, configServerBind, configServerPort, configAdminUsername, configAdminPassword);
+        logger.info("config init serverBind {}, serverPort {}, configServerBind {}, configServerPort {}, configAdminUsername {}, configAdminPassword {}", serverBind, serverPort, configServerBind, configServerPort, configAdminUsername, configAdminPassword);
 
         try {
             update(null);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("config update error", e.getMessage());
         }
     }
+
+
+    public String getWebPath() {
+        return webPath;
+    }
+
+    public void setWebPath(String webPath) {
+        this.webPath = webPath;
+    }
+
+    public String getRunningMode() {
+        return runningMode;
+    }
+
+    public void setRunningMode(String runningMode) {
+        this.runningMode = runningMode;
+    }
+
 
     public Integer getServerPort() {
         return this.serverPort;
@@ -181,33 +233,42 @@ public class ProxyConfig implements Serializable {
                 proxyMappingConfigJson = new String(out.toByteArray(), Charset.forName("UTF-8"));
             }
         } catch (Exception e) {
+            logger.error("打开客户端配置文件错误:", e.getMessage());
             throw new RuntimeException(e);
         }
 
-        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {});
+        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {
+        });
 
         if (clients == null) {
-            logger.warn("clients is null");
+            logger.warn("客户端配置文件 clients is null");
             clients = new ArrayList<Client>();
         }
-
+        // 代理服务器客户端 key 与端口映射关系 clientKey1 -> 50001
         Map<String, List<Integer>> clientInetPortMapping = new HashMap<String, List<Integer>>();
+        // 代理服务器对外端口 与客户端后台真实IP映射关系  50001 -> 127.0.0.1:22
         Map<Integer, String> inetPortLanInfoMapping = new HashMap<Integer, String>();
 
         // 构造端口映射关系
         for (Client client : clients) {
             String clientKey = client.getClientKey();
+
             if (clientInetPortMapping.containsKey(clientKey)) {
-                throw new IllegalArgumentException("密钥同时作为客户端标识，不能重复： " + clientKey);
+                logger.warn("客户端密钥重复:" + clientKey + " 请更换其他的密钥");
+                throw new IllegalArgumentException("客户端密钥重复:" + clientKey + " 请更换其他的密钥");
             }
+
             List<ClientProxyMapping> mappings = client.getProxyMappings();
             List<Integer> ports = new ArrayList<Integer>();
             clientInetPortMapping.put(clientKey, ports);
+
+
             for (ClientProxyMapping mapping : mappings) {
                 Integer port = mapping.getInetPort();
                 ports.add(port);
                 if (inetPortLanInfoMapping.containsKey(port)) {
-                    throw new IllegalArgumentException("一个公网端口只能映射一个后端信息，不能重复: " + port);
+                    logger.warn("代理中心服务器端口重复:" + port + " 请更换端口");
+                    throw new IllegalArgumentException("代理中心服务器端口重复:" + port + " 请更换其他未使用的端口");
                 }
 
                 inetPortLanInfoMapping.put(port, mapping.getLan());
@@ -219,6 +280,7 @@ public class ProxyConfig implements Serializable {
         this.inetPortLanInfoMapping = inetPortLanInfoMapping;
         this.clients = clients;
 
+        // 更新完后 写入到配置文件
         if (proxyMappingConfigJson != null) {
             try {
                 FileOutputStream out = new FileOutputStream(file);
@@ -226,6 +288,7 @@ public class ProxyConfig implements Serializable {
                 out.flush();
                 out.close();
             } catch (Exception e) {
+                logger.error("客户端信息更新到配置文件错误:", e.getMessage());
                 throw new RuntimeException(e);
             }
         }
@@ -263,6 +326,7 @@ public class ProxyConfig implements Serializable {
 
     /**
      * 获取代理客户端对应的代理服务器端口
+     * 该 client 所占用的所有公网端口列表
      *
      * @param clientKey
      * @return
@@ -313,19 +377,24 @@ public class ProxyConfig implements Serializable {
      * 代理客户端
      *
      * @author fengfei
-     *
      */
     public static class Client implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
-        /** 客户端备注名称 */
+        /**
+         * 客户端备注名称
+         */
         private String name;
 
-        /** 代理客户端唯一标识key */
+        /**
+         * 代理客户端唯一标识key
+         */
         private String clientKey;
 
-        /** 代理客户端与其后面的真实服务器映射关系 */
+        /**
+         * 代理客户端与其后面的真实服务器映射关系
+         */
         private List<ClientProxyMapping> proxyMappings;
 
         private int status;
@@ -368,17 +437,22 @@ public class ProxyConfig implements Serializable {
      * 代理客户端与其后面真实服务器映射关系
      *
      * @author fengfei
-     *
      */
     public static class ClientProxyMapping {
 
-        /** 代理服务器端口 */
+        /**
+         * 代理服务器端口
+         */
         private Integer inetPort;
 
-        /** 需要代理的网络信息（代理客户端能够访问），格式 192.168.1.99:80 (必须带端口) */
+        /**
+         * 需要代理的网络信息（代理客户端能够访问）格式 192.168.1.99:80 (必须带端口)
+         */
         private String lan;
 
-        /** 备注名称 */
+        /**
+         * 备注名称
+         */
         private String name;
 
         public Integer getInetPort() {
@@ -408,10 +482,9 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * 配置更新回调
+     * 配置更新回调 使用接口实现回调
      *
      * @author fengfei
-     *
      */
     public static interface ConfigChangedListener {
 
