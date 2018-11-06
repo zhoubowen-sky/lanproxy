@@ -52,6 +52,7 @@ public class WebConfigContainer implements Container {
             throw new RuntimeException(ex);
         }
 
+        // 注册路由
         RouteConfig.init();
     }
 

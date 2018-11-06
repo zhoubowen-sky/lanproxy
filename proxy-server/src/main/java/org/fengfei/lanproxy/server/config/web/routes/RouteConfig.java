@@ -167,6 +167,12 @@ public class RouteConfig {
                 return ResponseInfo.build(MetricsCollector.getAndResetAllMetrics());
             }
         });
+
+        // TODO 获取程序版本
+
+        // TODO 获取协议版本
+
+        // TODO 获取用户信息 及其相关权限
     }
 
 }

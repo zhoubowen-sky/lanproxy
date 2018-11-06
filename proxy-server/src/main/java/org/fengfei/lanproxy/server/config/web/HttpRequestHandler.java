@@ -5,7 +5,6 @@ import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.charset.Charset;
 
-import org.fengfei.lanproxy.common.Config;
 import org.fengfei.lanproxy.common.JsonUtil;
 import org.fengfei.lanproxy.server.config.ProxyConfig;
 import org.slf4j.Logger;
