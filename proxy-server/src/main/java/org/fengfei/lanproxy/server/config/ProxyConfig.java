@@ -31,13 +31,13 @@ public class ProxyConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 配置文件为config.json */
+    // TODO 此处需要优化 此类生成数据需要有专门的位置存放
+    /** 配置文件为config.json 客户端信息的配置 */
     public static final String CONFIG_FILE;
 
     private static Logger logger = LoggerFactory.getLogger(ProxyConfig.class);
 
     static {
-
         // 代理配置信息存放在用户根目录下
         String dataPath = System.getProperty("user.home") + "/" + ".lanproxy/";
         File file = new File(dataPath);
@@ -60,6 +60,7 @@ public class ProxyConfig implements Serializable {
     /** 配置服务端口 */
     private Integer configServerPort;
 
+    // TODO 此处需要支持多用户
     /** 配置服务管理员用户名 */
     private String configAdminUsername;
 
@@ -99,7 +100,11 @@ public class ProxyConfig implements Serializable {
                 "config init serverBind {}, serverPort {}, configServerBind {}, configServerPort {}, configAdminUsername {}, configAdminPassword {}",
                 serverBind, serverPort, configServerBind, configServerPort, configAdminUsername, configAdminPassword);
 
-        update(null);
+        try {
+            update(null);
+        }catch (Exception e){
+            logger.error("config update error", e.getMessage());
+        }
     }
 
     public Integer getServerPort() {
@@ -162,6 +167,7 @@ public class ProxyConfig implements Serializable {
         File file = new File(CONFIG_FILE);
         try {
             if (proxyMappingConfigJson == null && file.exists()) {
+                // 此时传入为空 且客户端配置文件存在
                 InputStream in = new FileInputStream(file);
                 byte[] buf = new byte[1024];
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -171,15 +177,17 @@ public class ProxyConfig implements Serializable {
                 }
 
                 in.close();
+                // 读取配置文件内容
                 proxyMappingConfigJson = new String(out.toByteArray(), Charset.forName("UTF-8"));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {
-        });
+        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {});
+
         if (clients == null) {
+            logger.warn("clients is null");
             clients = new ArrayList<Client>();
         }
 

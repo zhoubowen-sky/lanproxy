@@ -17,14 +17,12 @@ public class JsonUtil {
             Gson gson = new Gson();
             return (T) gson.fromJson(json, typeToken.getType());
         } catch (Exception e) {
+            return null;
         }
-        return null;
     }
 
     /**
-     *
      * java对象转为json对象
-     *
      */
     public static String object2json(Object obj) {
         Gson gson = new Gson();
