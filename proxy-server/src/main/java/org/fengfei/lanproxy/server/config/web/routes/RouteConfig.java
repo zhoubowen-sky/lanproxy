@@ -222,6 +222,9 @@ public class RouteConfig {
                 logger.debug("user:{}, {}", user.getUsername(), user.getPassword());
                 user.setStatus(1);
                 List<User> users = ProxyConfig.getInstance().getUsers();
+
+                // TODO 校验是否已经有此用户
+
                 users.add(user);
                 String s = JsonUtil.object2json(users);
                 ProxyConfig.getInstance().updateUserInfo(s);
