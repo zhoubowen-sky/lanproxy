@@ -20,7 +20,7 @@ import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 
 /**
- * 代理服务连接管理（代理客户端连接+用户请求连接）
+ * 代理服务连接管理（代理客户端连接 + 用户请求连接）
  *
  * @author fengfei
  *
@@ -39,11 +39,11 @@ public class ProxyChannelManager {
 
     private static Map<Integer, Channel> portCmdChannelMapping = new ConcurrentHashMap<Integer, Channel>();
 
+    // 支持并发安全的 Map ConcurrentHashMap
     private static Map<String, Channel> cmdChannels = new ConcurrentHashMap<String, Channel>();
 
     static {
         ProxyConfig.getInstance().addConfigChangedListener(new ConfigChangedListener() {
-
             /**
              * 代理配置发生变化时回调
              */
@@ -58,6 +58,7 @@ public class ProxyChannelManager {
                     Set<String> clientKeySet = ProxyConfig.getInstance().getClientKeySet();
                     if (!clientKeySet.contains(clientKey)) {
                         removeCmdChannel(proxyChannel);
+                        logger.info("removeCmdChannel clientKey from proxyChannel : " + clientKey);
                         continue;
                     }
 
@@ -67,7 +68,6 @@ public class ProxyChannelManager {
                         List<Integer> channelInetPorts = new ArrayList<Integer>(proxyChannel.attr(CHANNEL_PORT).get());
 
                         synchronized (portCmdChannelMapping) {
-
                             // 移除旧的连接映射关系
                             for (int chanelInetPort : channelInetPorts) {
                                 Channel channel = portCmdChannelMapping.get(chanelInetPort);
@@ -75,16 +75,14 @@ public class ProxyChannelManager {
                                     continue;
                                 }
 
-                                // 判断是否是同一个连接对象，有可能之前已经更换成其他client的连接了
+                                // 判断是否是同一个连接对象 有可能之前已经更换成其他client的连接了
                                 if (proxyChannel == channel) {
                                     if (!inetPortSet.contains(chanelInetPort)) {
-
                                         // 移除新配置中不包含的端口
                                         portCmdChannelMapping.remove(chanelInetPort);
                                         proxyChannel.attr(CHANNEL_PORT).get().remove(new Integer(chanelInetPort));
                                     } else {
-
-                                        // 端口已经在改proxyChannel中使用了
+                                        // 端口已经在该 proxyChannel 中使用了
                                         inetPorts.remove(new Integer(chanelInetPort));
                                     }
                                 }
@@ -117,18 +115,21 @@ public class ProxyChannelManager {
             private void checkAndClearUserChannels(Channel proxyChannel) {
                 Map<String, Channel> userChannels = getUserChannels(proxyChannel);
                 Iterator<Entry<String, Channel>> userChannelIte = userChannels.entrySet().iterator();
+
                 while (userChannelIte.hasNext()) {
                     Entry<String, Channel> entry = userChannelIte.next();
                     Channel userChannel = entry.getValue();
+
                     String requestLanInfo = getUserChannelRequestLanInfo(userChannel);
                     InetSocketAddress sa = (InetSocketAddress) userChannel.localAddress();
                     String lanInfo = ProxyConfig.getInstance().getLanInfo(sa.getPort());
 
+                    logger.info("checkAndClearUserChannels requestLanInfo:{} lanInfo:{}", requestLanInfo, lanInfo);
                     // 判断当前配置中对应外网端口的lan信息是否与正在运行的连接中的lan信息是否一致
                     if (lanInfo == null || !lanInfo.equals(requestLanInfo)) {
                         userChannel.close();
 
-                        // ConcurrentHashMap不会报ConcurrentModificationException异常
+                        // ConcurrentHashMap 不会报 ConcurrentModificationException 异常
                         userChannels.remove(entry.getKey());
                     }
                 }
@@ -168,12 +169,13 @@ public class ProxyChannelManager {
      * @param channel
      */
     public static void removeCmdChannel(Channel channel) {
-        logger.warn("channel closed, clear user channels, {}", channel);
+        logger.warn("removeCmdChannel channel closed, clear user channels, {}", channel);
         if (channel.attr(CHANNEL_PORT).get() == null) {
             return;
         }
 
         String clientKey = channel.attr(CHANNEL_CLIENT_KEY).get();
+        logger.info("removeCmdChannel CHANNEL_CLIENT_KEY:{}", clientKey);
         Channel channel0 = cmdChannels.remove(clientKey);
         if (channel != channel0) {
             cmdChannels.put(clientKey, channel);

@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
+	"fmt"
 	"github.com/urfave/cli"
 	"io/ioutil"
 	"log"
@@ -14,8 +15,6 @@ import (
 )
 
 const (
-	/* 心跳消息 */
-	TYPE_HEARTBEAT = 0x07
 
 	/* 认证消息，检测clientKey是否正确 */
 	C_TYPE_AUTH = 0x01
@@ -31,6 +30,9 @@ const (
 
 	/* 用户与代理服务器以及代理客户端与真实服务器连接是否可写状态同步 */
 	C_TYPE_WRITE_CONTROL = 0x06
+
+	/* 心跳消息 */
+	TYPE_HEARTBEAT = 0x07
 
 	//协议各字段长度
 	LEN_SIZE = 4
@@ -65,54 +67,54 @@ type ProxyConnPooler struct {
 }
 
 func main() {
-	log.Println("lanproxy - help you expose a local server behind a NAT or firewall to the internet")
+	log.Println("远程维护 - 使用此软件可以做到内网穿透 实现对设备的远程访问与维护")
 	app := cli.NewApp()
 	app.Name = "lanproxy"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "k",
 			Value: "",
-			Usage: "client key",
+			Usage: "客户端唯一秘钥",
 		},
 		cli.StringFlag{
 			Name:  "s",
 			Value: "",
-			Usage: "proxy server host",
+			Usage: "代理服务器 IP",
 		},
 		cli.IntFlag{
 			Name:  "p",
 			Value: 4900,
-			Usage: "proxy server port",
+			Usage: "代理服务器代理端口",
 		}, cli.StringFlag{
 			Name:  "ssl",
 			Value: "false",
-			Usage: "enable ssl",
+			Usage: "是否开启 SSL 默认不开启",
 		}, cli.StringFlag{
 			Name:  "cer",
 			Value: "",
-			Usage: "ssl cert path, default skip verify certificate",
+			Usage: "SSL 证书 默认跳过认证",
 		}}
-	app.Usage = "help you expose a local server behind a NAT or firewall to the internet"
+	app.Usage = "使用此软件可以做到内网穿透 实现对设备的远程访问与维护"
 	app.Action = func(c *cli.Context) error {
 		if c.String("s") == "" {
-			log.Println("server ip addr is required, use -s")
+			log.Println("代理服务器IP为必填参数, 使用 -s")
 			log.Println("exit")
 			return nil
 		}
 		if c.String("k") == "" {
-			log.Println("clientkey is required, use -k")
+			log.Println("客户端唯一秘钥为必填参数, 使用 -k")
 			log.Println("exit")
 			return nil
 		}
-		log.Println("client key:", c.String("k"))
-		log.Println("server addr:", c.String("s"))
-		log.Println("server port:", c.Int("p"))
-		log.Println("enable ssl:", c.String("ssl"))
+		log.Println("客户端唯一秘钥:", c.String("k"))
+		log.Println("代理服务器 IP:", c.String("s"))
+		log.Println("代理服务器端口:", c.Int("p"))
+		log.Println("是否开启 SSL :", c.String("ssl"))
 		cerPath := c.String("cer")
 		if c.String("cer") == "" {
-			cerPath = "certificate path is null, skip verify certificate"
+			cerPath = "SSL 证书路径为空 跳过认证"
 		}
-		log.Println("ssl cer path:", cerPath)
+		log.Println("SSL 证书路径:", cerPath)
 		var conf *tls.Config
 		if c.String("ssl") == "true" {
 			skipVerify := false
@@ -153,7 +155,7 @@ func start(key string, ip string, port int, conf *tls.Config) {
 		messageHandler.connHandler = connHandler
 		messageHandler.clientKey = key
 		messageHandler.startHeartbeat()
-		log.Println("start listen cmd message:", messageHandler)
+		log.Println("start listen cmd message , clientKey:", fmt.Sprintf("%#v", messageHandler.clientKey))
 		connHandler.Listen(conn, &messageHandler)
 	}
 }

@@ -46,10 +46,12 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
                 handleTransferMessage(ctx, proxyMessage);
                 break;
             default:
+                logger.warn("协议不符合要求");
                 break;
         }
     }
 
+    // 处理客户端的数据包
     private void handleTransferMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         Channel userChannel = ctx.channel().attr(Constants.NEXT_CHANNEL).get();
         if (userChannel != null) {
@@ -59,9 +61,9 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         }
     }
 
+    // 处理客户端的断开请求
     private void handleDisconnectMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         String clientKey = ctx.channel().attr(Constants.CLIENT_KEY).get();
-
         // 代理连接没有连上服务器由控制连接发送用户端断开连接消息
         if (clientKey == null) {
             String userId = proxyMessage.getUri();
@@ -89,6 +91,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         }
     }
 
+    // 处理客户端的连接请求
     private void handleConnectMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         String uri = proxyMessage.getUri();
         if (uri == null) {
@@ -100,14 +103,15 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         String[] tokens = uri.split("@");
         if (tokens.length != 2) {
             ctx.channel().close();
-            logger.warn("ConnectMessage:error uri");
+            logger.warn("ConnectMessage: error uri");
             return;
         }
+        logger.info("客户端传来的 Token: {}", tokens.toString());
 
         Channel cmdChannel = ProxyChannelManager.getCmdChannel(tokens[1]);
         if (cmdChannel == null) {
             ctx.channel().close();
-            logger.warn("ConnectMessage:error cmd channel key {}", tokens[1]);
+            logger.warn("ConnectMessage: error cmd channel key {}", tokens[1]);
             return;
         }
 
@@ -122,6 +126,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         }
     }
 
+    // 处理客户端发来的心跳包
     private void handleHeartbeatMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         ProxyMessage heartbeatMessage = new ProxyMessage();
         heartbeatMessage.setSerialNumber(heartbeatMessage.getSerialNumber());
@@ -130,9 +135,12 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         ctx.channel().writeAndFlush(heartbeatMessage);
     }
 
+    // 处理客户端发来的认证包
     private void handleAuthMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         String clientKey = proxyMessage.getUri();
         List<Integer> ports = ProxyConfig.getInstance().getClientInetPorts(clientKey);
+        // 本地客户端配置文件中没有此客户端
+        // TODO 此处需要支持客户端自发现
         if (ports == null) {
             logger.info("error clientKey {}, {}", clientKey, ctx.channel());
             ctx.channel().close();
@@ -141,12 +149,12 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
         Channel channel = ProxyChannelManager.getCmdChannel(clientKey);
         if (channel != null) {
-            logger.warn("exist channel for key {}, {}", clientKey, channel);
+            logger.warn("exist channel for clientKey:{}, channel:{}", clientKey, channel);
             ctx.channel().close();
             return;
         }
 
-        logger.info("set port => channel, {}, {}, {}", clientKey, ports, ctx.channel());
+        logger.info("set port => channel, clientKey:{}, ports:{}, ctx.channel:{}", clientKey, ports, ctx.channel());
         ProxyChannelManager.addCmdChannel(ports, clientKey, ctx.channel());
     }
 
