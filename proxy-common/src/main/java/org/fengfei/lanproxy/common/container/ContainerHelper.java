@@ -27,10 +27,8 @@ public class ContainerHelper {
         startContainers();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
-
             @Override
             public void run() {
-
                 synchronized (ContainerHelper.class) {
                     // 停止所有容器.
                     stopContainers();
