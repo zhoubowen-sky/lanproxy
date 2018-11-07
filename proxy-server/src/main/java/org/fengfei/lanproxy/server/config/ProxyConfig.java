@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.JsonObject;
 import org.fengfei.lanproxy.common.Config;
 import org.fengfei.lanproxy.common.JsonUtil;
 import org.slf4j.Logger;
@@ -29,11 +30,15 @@ public class ProxyConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // TODO 此处需要优化 此类生成数据需要有专门的位置存放
     /**
      * 配置文件为config.json 客户端信息的配置
      */
     public static final String CONFIG_FILE;
+
+    /**
+     * 用户信息的配置文件 user.json 普通用户 不包括系统出厂默认的超级管理员用户
+     */
+    public static final String USER_CONFIG_FILE;
 
     private static Logger logger = LoggerFactory.getLogger(ProxyConfig.class);
 
@@ -44,7 +49,10 @@ public class ProxyConfig implements Serializable {
         if (!file.isDirectory()) {
             file.mkdir();
         }
+        // 业务配置信息
         CONFIG_FILE = dataPath + "/config.json";
+        // 用户账户配置信息
+        USER_CONFIG_FILE  = dataPath + "/user.json";
     }
 
     /**
@@ -77,7 +85,6 @@ public class ProxyConfig implements Serializable {
      */
     private Integer configServerPort;
 
-    // TODO 此处需要支持多用户
     /**
      * 配置服务管理员用户名
      */
@@ -114,6 +121,17 @@ public class ProxyConfig implements Serializable {
      */
     private List<ConfigChangedListener> configChangedListeners = new ArrayList<ConfigChangedListener>();
 
+    /**
+     * 用户名与客户端之间的映射关系
+     */
+    private volatile Map<String, List<Client>> userClientMapping = new HashMap<String, List<Client>>();
+
+    /**
+     * 用户列表
+     */
+    private List<User> users;
+
+
     private ProxyConfig() {
 
         // 运行模式
@@ -136,6 +154,7 @@ public class ProxyConfig implements Serializable {
 
         try {
             update(null);
+            updateUserInfo(null);
         } catch (Exception e) {
             logger.error("config update error", e.getMessage());
         }
@@ -211,6 +230,50 @@ public class ProxyConfig implements Serializable {
         return clients;
     }
 
+    public List<User> getUsers(){
+        return users;
+    }
+
+    /**
+     * 解析用户配置文件
+     *
+     * @param userInfoJson 传入整个配置文件的内容 jsonStr 格式
+     */
+    public void updateUserInfo(String userInfoJson) {
+        File file = new File(USER_CONFIG_FILE);
+        try {
+            if (userInfoJson == null && file.exists()) {
+                userInfoJson = fileToString(file);
+            }
+        } catch (Exception e) {
+            logger.error("打开用户数据文件失败:{}", e);
+            throw new RuntimeException(e);
+        }
+
+        logger.debug("用户对象转换为JSON数据后:{}", userInfoJson);
+        List<User> users = JsonUtil.json2object(userInfoJson, new TypeToken<List<User>>() {});
+        if (users == null) {
+            logger.warn("用户配置文件为 null");
+            users = new ArrayList<User>();
+        }
+
+        this.users = users;
+
+        if (userInfoJson != null) {
+            try {
+                FileOutputStream out = new FileOutputStream(file);
+                out.write(userInfoJson.getBytes(Charset.forName("UTF-8")));
+                out.flush();
+                out.close();
+            } catch (Exception e) {
+                logger.error("用户信息更新到配置文件错误:", e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
+        notifyconfigChangedListeners();
+    }
+
+
     /**
      * 解析配置文件
      */
@@ -220,25 +283,14 @@ public class ProxyConfig implements Serializable {
         try {
             if (proxyMappingConfigJson == null && file.exists()) {
                 // 此时传入为空 且客户端配置文件存在
-                InputStream in = new FileInputStream(file);
-                byte[] buf = new byte[1024];
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                int readIndex;
-                while ((readIndex = in.read(buf)) != -1) {
-                    out.write(buf, 0, readIndex);
-                }
-
-                in.close();
-                // 读取配置文件内容
-                proxyMappingConfigJson = new String(out.toByteArray(), Charset.forName("UTF-8"));
+                proxyMappingConfigJson = fileToString(file);
             }
         } catch (Exception e) {
             logger.error("打开客户端配置文件错误:", e.getMessage());
             throw new RuntimeException(e);
         }
 
-        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {
-        });
+        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {});
 
         if (clients == null) {
             logger.warn("客户端配置文件 clients is null");
@@ -261,7 +313,6 @@ public class ProxyConfig implements Serializable {
             List<ClientProxyMapping> mappings = client.getProxyMappings();
             List<Integer> ports = new ArrayList<Integer>();
             clientInetPortMapping.put(clientKey, ports);
-
 
             for (ClientProxyMapping mapping : mappings) {
                 Integer port = mapping.getInetPort();
@@ -295,6 +346,9 @@ public class ProxyConfig implements Serializable {
 
         notifyconfigChangedListeners();
     }
+
+
+
 
     /**
      * 配置更新通知
@@ -434,6 +488,68 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
+     * 用户信息的描述
+     *
+     * @author zhoubowen
+     */
+    public static class User implements Serializable{
+
+        /**
+         * 用户名 唯一 字母数字表示 不支持特殊字符
+         */
+        private String username;
+
+        /**
+         * 用户密码
+         */
+        private String password;
+
+        /**
+         * 用户账户当前的状态 启用 禁用
+         */
+        private int status;
+
+        /**
+         * 当前用户所拥有的客户端的权限
+         */
+        private List<String> clientKeys;
+
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
+
+        public List<String> getClientKeys() {
+            return clientKeys;
+        }
+
+        public void setClientKeys(List<String> clientKeys) {
+            this.clientKeys = clientKeys;
+        }
+
+    }
+
+    /**
      * 代理客户端与其后面真实服务器映射关系
      *
      * @author fengfei
@@ -487,7 +603,38 @@ public class ProxyConfig implements Serializable {
      * @author fengfei
      */
     public static interface ConfigChangedListener {
-
         void onChanged();
     }
+
+
+
+
+
+
+
+
+    /**
+     * 文件对象转换为字符串
+     * @param file 打开的文件句柄
+     * @return
+     */
+    private String fileToString(File file){
+        String s = "";
+        try {
+            InputStream in = new FileInputStream(file);
+            byte[] buf = new byte[1024];
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            int readIndex;
+            while ((readIndex = in.read(buf)) != -1) {
+                out.write(buf, 0, readIndex);
+            }
+            in.close();
+            s = new String(out.toByteArray(), Charset.forName("UTF-8"));
+            return s;
+        }catch (Exception e) {
+            logger.error("打开文件错误:{}",e);
+            return s;
+        }
+    }
+
 }

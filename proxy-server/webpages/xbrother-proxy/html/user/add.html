@@ -1,0 +1,74 @@
+<div class="layui-tab layui-tab-brief">
+    <ul class="layui-tab-title site-demo-title">
+        <li class="layui-this add-client-title"></li>
+    </ul>
+    <div class="main-content">
+      <div class="layui-form-item">
+	    <label class="layui-form-label i18n-client-name"></label>
+	    <div class="layui-input-inline">
+	      <input type="text" name="username" autocomplete="off" placeholder="" class="layui-input">
+	    </div>
+	  </div>
+	  <div class="layui-form-item">
+        <label class="layui-form-label i18n-client-key"></label>
+        <div class="layui-input-inline">
+          <input type="text" name="password" autocomplete="off" placeholder="" class="layui-input">
+        </div>
+
+      </div>
+       <div class="layui-form-item">
+	    <div class="layui-input-block">
+	      <button class="layui-btn add"></button>
+	    </div>
+	  </div>
+    </div>
+</div>
+
+
+<script>
+$(".add-client-title").html($.i18n.prop('user.add'));
+$(".i18n-client-name").html($.i18n.prop('user.name'));
+$(".i18n-client-key").html($.i18n.prop('user.key'));
+$("input[name='username']").attr("placeholder", $.i18n.prop('user.username.placeholder'));
+$("input[name='password']").attr("placeholder", $.i18n.prop('user.password.placeholder'));
+
+$(".add").html($.i18n.prop('public.submit'));
+
+
+$(".add").click(function(){
+    var username = $("input[name='username']").val();
+    if(username == ""){
+    	layer.alert($.i18n.prop('user.notice.inputname'), {
+            title: $.i18n.prop('public.tips')
+        });
+    	return;
+    }
+    var password = $("input[name='password']").val();
+    if(password == ""){
+        layer.alert($.i18n.prop('user.notice.inputkey'), {
+            title: $.i18n.prop('public.tips')
+        });
+        return;
+    }
+
+    userInfo = {
+        username:username,
+        password:password
+    }
+
+    api_invoke("/user/add", userInfo, function(data) {
+        if (data.code == 20000) {
+            layer.alert($.i18n.prop('user.notice.addsuccess'), {title: $.i18n.prop('public.tips')}, function(index){
+                layer.close(index);
+                // location.reload();
+                load_page("html/user/list.html");
+            });
+        }
+    });
+});
+
+$(".back").click(function(){
+	load_page("html/user/list.html");
+});
+
+</script>

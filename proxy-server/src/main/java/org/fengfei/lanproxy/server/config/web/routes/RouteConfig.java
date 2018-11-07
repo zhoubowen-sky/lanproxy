@@ -1,16 +1,17 @@
 package org.fengfei.lanproxy.server.config.web.routes;
 
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.fengfei.lanproxy.common.JsonUtil;
 import org.fengfei.lanproxy.server.ProxyChannelManager;
 import org.fengfei.lanproxy.server.config.ProxyConfig;
 import org.fengfei.lanproxy.server.config.ProxyConfig.Client;
+import org.fengfei.lanproxy.server.config.ProxyConfig.User;
 import org.fengfei.lanproxy.server.config.web.ApiRoute;
 import org.fengfei.lanproxy.server.config.web.RequestHandler;
 import org.fengfei.lanproxy.server.config.web.RequestMiddleware;
@@ -85,9 +86,9 @@ public class RouteConfig {
                 for (Client client : clients) {
                     Channel channel = ProxyChannelManager.getCmdChannel(client.getClientKey());
                     if (channel != null) {
-                        client.setStatus(1);// online
+                        client.setStatus(1);// 客户端在线
                     } else {
-                        client.setStatus(0);// offline
+                        client.setStatus(0);// 客户端离线
                     }
                 }
                 return ResponseInfo.build(ProxyConfig.getInstance().getClients());
@@ -101,8 +102,10 @@ public class RouteConfig {
                 byte[] buf = new byte[request.content().readableBytes()];
                 request.content().readBytes(buf);
                 String config = new String(buf, Charset.forName("UTF-8"));
-                List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {
-                });
+
+                List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {});
+
+
                 if (clients == null) {
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
                 }
@@ -118,7 +121,7 @@ public class RouteConfig {
             }
         });
 
-        // 登录 TODO 此处需要支持多帐号以及新增用户
+        // 登录
         ApiRoute.addRoute("/login", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
@@ -172,6 +175,93 @@ public class RouteConfig {
                 return ResponseInfo.build(MetricsCollector.getAndResetAllMetrics());
             }
         });
+
+        ApiRoute.addRoute("/user/update", new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                // TODO 处理更新用户信息
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                List<User> users = JsonUtil.json2object(config, new TypeToken<List<User>>(){});
+
+                if (users == null){
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error user json config");
+                }
+                try {
+                    ProxyConfig.getInstance().updateUserInfo(config);
+
+                }catch (Exception e){
+                    logger.error("更新用户配置文件失败:{}",e);
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, e.getMessage());
+                }
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        });
+
+        // 获取所有用户的列表以及详情
+        ApiRoute.addRoute("/user/detail", new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                List<User> users = ProxyConfig.getInstance().getUsers();
+                return ResponseInfo.build(users);
+            }
+        });
+
+
+        // 新增用户
+        ApiRoute.addRoute("/user/add", new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                logger.debug("新增用户前端传入的参数:{}", config);
+                User user = JsonUtil.json2object(config, new TypeToken<User>(){});
+                logger.debug("user:{}, {}", user.getUsername(), user.getPassword());
+                user.setStatus(1);
+                List<User> users = ProxyConfig.getInstance().getUsers();
+                users.add(user);
+                String s = JsonUtil.object2json(users);
+                ProxyConfig.getInstance().updateUserInfo(s);
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        });
+
+        // 删除用户
+        ApiRoute.addRoute("/user/delete", new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                logger.debug("删除用户前端传入的参数:{}", config);
+
+                User u = JsonUtil.json2object(config, new TypeToken<User>(){});
+
+                List<User> users = ProxyConfig.getInstance().getUsers();
+
+                Iterator<User> iterator = users.iterator();
+                while (iterator.hasNext()){
+                    User uu = iterator.next();
+                    if (uu.getUsername().equals(u.getUsername())){
+                        iterator.remove();
+                        logger.debug("删除的用户为：{}", uu.getUsername());
+                    }
+                }
+
+
+                String s = JsonUtil.object2json(users);
+                logger.debug("删除用户后的所有用户信息:{}", s);
+                ProxyConfig.getInstance().updateUserInfo(s);
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        });
+
+
 
         // TODO 获取程序版本
 
