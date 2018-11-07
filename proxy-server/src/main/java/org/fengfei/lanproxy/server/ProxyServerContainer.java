@@ -114,7 +114,6 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
             }
         });
         try {
-
             // Bind and start to accept incoming connections.
             ChannelFuture f = b.bind(host, port);
             f.sync();
@@ -142,13 +141,13 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
             } catch (Exception ex) {
                 // BindException表示该端口已经绑定过
                 if (!(ex.getCause() instanceof BindException)) {
+                    logger.error("程序启动报错:{}", ex);
                     throw new RuntimeException(ex);
                 }else {
                     logger.warn("端口已经绑定过了:"+port);
                 }
             }
         }
-
     }
 
     @Override

@@ -84,14 +84,12 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
              path = PAGE_FOLDER + uriPath;
         }else {
             path =  ProxyConfig.getInstance().getWebPath() + uriPath;
-            logger.debug("当前运行模式为 debug");
         }
         File rfile = new File(path);
         if (rfile.isDirectory()) {
             path = path + "/index.html";
             rfile = new File(path);
         }
-        logger.info("前端文件存储路径:"+path);
 
         if (!rfile.exists()) {
             status = HttpResponseStatus.NOT_FOUND;

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.fengfei.lanproxy.common.JsonUtil;
 import org.fengfei.lanproxy.server.ProxyChannelManager;
 import org.fengfei.lanproxy.server.config.ProxyConfig;
@@ -34,7 +36,6 @@ public class RouteConfig {
     protected static final String AUTH_COOKIE_KEY = "token";
 
     private static Logger logger = LoggerFactory.getLogger(RouteConfig.class);
-
     /**
      * 管理员不能同时在多个地方登录
      */
@@ -124,8 +125,7 @@ public class RouteConfig {
                 byte[] buf = new byte[request.content().readableBytes()];
                 request.content().readBytes(buf);
                 String config = new String(buf);
-                Map<String, String> loginParams = JsonUtil.json2object(config, new TypeToken<Map<String, String>>() {
-                });
+                Map<String, String> loginParams = JsonUtil.json2object(config, new TypeToken<Map<String, String>>() {});
 
                 if (loginParams == null) {
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "参数异常");
@@ -133,13 +133,18 @@ public class RouteConfig {
 
                 String username = loginParams.get("username");
                 String password = loginParams.get("password");
+                logger.debug("登陆接口请求参数 username:{}  password:{}", username, password);
                 if (username == null || password == null) {
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
                 }
 
                 if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
                     token = UUID.randomUUID().toString().replace("-", "");
-                    return ResponseInfo.build(token);
+                    logger.debug("token:{}", token);
+                    JsonObject object = new JsonObject();
+                    object.addProperty("token", token);
+                    object.addProperty("username", username);
+                    return ResponseInfo.build(object);
                 }
 
                 return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");

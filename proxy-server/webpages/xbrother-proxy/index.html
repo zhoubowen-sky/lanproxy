@@ -17,8 +17,8 @@
     <div class="layui-header">
         <div class="layui-logo">共济科技 - 远程维护中心</div>
         <ul class="layui-nav layui-layout-right">
-            <li class="layui-nav-item"><a href="javascript:;"
-                                          class="logout"></a></li>
+            <li class="layui-nav-item login_username"><a href="javascript:;" class="">xxx</a></li>
+            <li class="layui-nav-item"><a href="javascript:;" class="logout"></a></li>
         </ul>
     </div>
 
@@ -36,7 +36,6 @@
 <script src="/template/template.js"></script>
 <script>
     window.clientList = [];
-
     function api_invoke(uri, params, callback) {
         var index = layer.load(1, {
             shade: [0.1, '#fff']
@@ -112,6 +111,8 @@
             })
         });
 
+        updata_username();
+
     });
 
     function update_menu() {
@@ -129,9 +130,7 @@
                 $(".client-list-sub").html($.i18n.prop('menu.client.list'));
                 $(".client-add").html($.i18n.prop('menu.client.add'));
 
-
                 $(".client-config").html($.i18n.prop('menu.client.config'));
-
 
                 $(".statistics").html($.i18n.prop('menu.client.statistics'));
                 $(".users").html($.i18n.prop('menu.client.users'));
@@ -161,6 +160,21 @@
 
     initWebLanguage();
 
+    function updata_username(){
+        var url = location.search;
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(1);
+            var strs = str.split("&");
+            if (strs.length > 0){
+                var arr = strs[0].split("=");
+                if (arr.length >=2){
+                    var username = arr[1];
+                    $(".login_username").html(username);
+                }
+            }
+        }
+    }
+
     jQuery.i18n.properties({
         name: 'lang', //资源文件名称
         path: '/i18n/', //资源文件路径
@@ -181,8 +195,7 @@
 </script>
 <script id="menu-tpl" type="text/html">
     <ul class="layui-nav layui-nav-tree">
-        <li class="layui-nav-item layui-nav-itemed"><a class="client-list"
-                                                       href="javascript:;"></a>
+        <li class="layui-nav-item layui-nav-itemed"><a class="client-list" href="javascript:;"></a>
             <dl class="layui-nav-child">
                 <dd class="layui-this">
                     <a href="javascript:load_page('html/client/list.html');" class="client-list-sub"></a>

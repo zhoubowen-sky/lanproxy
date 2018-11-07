@@ -117,8 +117,8 @@
         .form input:focus {
             background-color: white;
             width: 300px;
-            /*color: #53e3a6;*/
-            color: #004ED0;
+            color: #53e3a6;
+            /*color: #004ED0;*/
         }
 
         .form button {
@@ -129,8 +129,8 @@
             background-color: white;
             border: 0;
             padding: 10px 15px;
-            /*color: #53e3a6;*/
-            color: #004ED0;
+            color: #53e3a6;
+            /*color: #004ED0;*/
             border-radius: 3px;
             width: 250px;
             cursor: pointer;
@@ -149,7 +149,6 @@
 <div class="wrapper">
     <div class="container">
         <h1>共济科技 - 远程维护中心</h1>
-
         <div class="form">
             <input type="text" class="username" placeholder="">
             <input type="password" class="password" placeholder="">
@@ -166,15 +165,12 @@
             type: "POST",
             url: "/login",
             contentType: "application/json; charset=utf-8",
-            data: JSON.stringify({
-                username: $(".username").val(),
-                password: $(".password").val()
-            }),
+            data: JSON.stringify({username: $(".username").val(), password: $(".password").val()}),
             dataType: "json",
             success: function (data) {
                 if (data.code == 20000) {
-                    setCookie("token", data.data);
-                    window.location.href = "xbrother-proxy/";
+                    setCookie("token", data.data.token);
+                    window.location.href = "xbrother-proxy/?username="+data.data.username;
                 }
             },
             error: function (e) {
