@@ -14,8 +14,10 @@ public class ProxyMessageEncoder extends MessageToByteEncoder<ProxyMessage> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ProxyMessage msg, ByteBuf out) throws Exception {
+
         int bodyLength = TYPE_SIZE + SERIAL_NUMBER_SIZE + URI_LENGTH_SIZE;
         byte[] uriBytes = null;
+
         if (msg.getUri() != null) {
             uriBytes = msg.getUri().getBytes();
             bodyLength += uriBytes.length;
