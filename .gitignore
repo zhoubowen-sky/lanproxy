@@ -15,3 +15,4 @@ logs
 target
 *.iml
 distribution
+.idea
