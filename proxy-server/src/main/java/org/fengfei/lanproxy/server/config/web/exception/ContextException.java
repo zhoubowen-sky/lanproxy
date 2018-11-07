@@ -1,5 +1,8 @@
 package org.fengfei.lanproxy.server.config.web.exception;
 
+/**
+ * API 错误的封装类
+ */
 public class ContextException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
