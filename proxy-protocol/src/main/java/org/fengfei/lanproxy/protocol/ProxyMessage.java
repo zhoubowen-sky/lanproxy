@@ -10,9 +10,6 @@ import java.util.Arrays;
  */
 public class ProxyMessage {
 
-    /** 心跳消息 */
-    public static final byte TYPE_HEARTBEAT = 0x07;
-
     /** 认证消息，检测clientKey是否正确 */
     public static final byte C_TYPE_AUTH = 0x01;
 
@@ -30,6 +27,9 @@ public class ProxyMessage {
 
     /** 用户与代理服务器以及代理客户端与真实服务器连接是否可写状态同步 */
     public static final byte C_TYPE_WRITE_CONTROL = 0x06;
+
+    /** 心跳消息 */
+    public static final byte TYPE_HEARTBEAT = 0x07;
 
     /** 消息类型 */
     private byte type;
