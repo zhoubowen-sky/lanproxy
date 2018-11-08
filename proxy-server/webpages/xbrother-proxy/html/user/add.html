@@ -38,7 +38,8 @@ $(".add").html($.i18n.prop('public.submit'));
 
 $(".add").click(function(){
     var username = $("input[name='username']").val();
-    if(username == ""){
+    var usernameRegex = /^[a-z]$/
+    if(username == "" || !(username.match(usernameRegex))){
     	layer.alert($.i18n.prop('user.notice.inputname'), {
             title: $.i18n.prop('public.tips')
         });
