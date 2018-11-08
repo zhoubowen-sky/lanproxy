@@ -15,26 +15,24 @@
 			var html = template($("#user-tpl").html(), data);
 			$(".main-content").html(html);
 			$(".mapping-config").click(function() {
-		        window.clientIndex = $(this).attr("data-index");
+		        window.userIndex = $(this).attr("data-index");
 		        load_page("html/user/list.html");
 			});
 
-
 			$(".user-edit").click(function() {
-				window.clientIndex = $(this).attr("data-index");
+				window.userIndex = $(this).attr("data-index");
 				load_page("html/user/edit.html");
 			});
 
-
 			$(".user-delete").click(function() {
-                window.clientIndex = $(this).attr("data-index"); // 此处存储的为 username
+                window.userIndex = $(this).attr("data-index"); // 此处存储的为 username
                 window.username = $(this).attr("data-username"); // 此处存储的为 username
 				layer.confirm($.i18n.prop('public.confirm.delete'), {
 			        title: $.i18n.prop('public.tips'),
 		            btn : [ $.i18n.prop('public.ok'), $.i18n.prop('public.cancel') ]
 		        }, function(i) {
 					layer.close(i);
-					userList.splice(clientIndex, 1);
+					userList.splice(userIndex, 1);
 					userInfo = {
                         username:username
                     }
@@ -68,7 +66,11 @@
     <%for(var i = 0; i < data.length; i++) {%>
         <tr>
             <td><%:=data[i].username%></td>
-            <td><%:=data[i].password%></td>
+                <% if(window.loginUserStatus == 3){ %>
+                    <td><%:=data[i].password%></td> <!--显示密码-->
+                <% } else { %>
+                    <td>-</td> <!--隐藏密码-->
+                <% }%>
             <td>
                 <% if(data[i].status == 1){ %>
                 <span class="layui-badge layui-bg-green"><%:=$.i18n.prop('user.status.active')%></span>
@@ -77,8 +79,14 @@
                 <% }%>
             </td>
             <td>
-              <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-mini user-edit"><%:=$.i18n.prop('public.edit')%></a>
-              <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-danger layui-btn-mini user-delete"><%:=$.i18n.prop('public.delete')%></a>
+
+                <% if(window.loginUserStatus == 3){ %>
+                    <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-mini user-edit"><%:=$.i18n.prop('public.edit')%></a>
+                    <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-danger layui-btn-mini user-delete"><%:=$.i18n.prop('public.delete')%></a>
+                <% } else { %>
+                    <div>-</div> <!--隐藏按钮-->
+                <% }%>
+
             </td>
         </tr>
     <%}%>

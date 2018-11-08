@@ -151,15 +151,17 @@ public class RouteConfig {
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
                 }
 
-                // TODO 校验用户合法性
-//                if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
-                if (checkUserAuthority(username, password)) {
+                TwoTuple res = checkUserAuthority(username, password);
+
+                if (res.getFirst()) {
                     String token = UUID.randomUUID().toString().replace("-", "");
                     logger.debug("{} 用户登录的 token:{}", username, token);
                     usernameTokenMap.put(username, token);
+
                     JsonObject object = new JsonObject();
                     object.addProperty("token", token);
                     object.addProperty("username", username);
+                    object.addProperty("status", res.getSecond().getStatus());
                     return ResponseInfo.build(object);
                 }
 
@@ -208,15 +210,15 @@ public class RouteConfig {
             }
         });
 
+        // TODO 处理更新用户信息
         ApiRoute.addRoute("/user/update", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
-                // TODO 处理更新用户信息
                 byte[] buf = new byte[request.content().readableBytes()];
                 request.content().readBytes(buf);
                 String config = new String(buf, Charset.forName("UTF-8"));
                 List<User> users = JsonUtil.json2object(config, new TypeToken<List<User>>(){});
-
+                logger.debug("前端传入的更新用户信息的参数:{}", config);
                 if (users == null){
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error user json config");
                 }
@@ -310,30 +312,72 @@ public class RouteConfig {
 
         // TODO 获取协议版本
 
-        // TODO 获取用户信息 及其相关权限
     }
 
-    public static   boolean checkUserAuthority(String username, String password) {
-
-        // TODO admin 用户特殊处理
+    public static TwoTuple checkUserAuthority(String username, String password) {
+        // admin 用户特殊处理
+        TwoTuple r = new TwoTuple();
         if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
-            return true;
+
+            User adminUser = new User();
+            adminUser.setUsername(ProxyConfig.getInstance().getConfigAdminUsername());
+            adminUser.setPassword(ProxyConfig.getInstance().getConfigAdminPassword());
+            // 3 代表超级管理员
+            adminUser.setStatus(3);
+            r = new TwoTuple(true, adminUser);
+            return r;
         }
         List<User> users = ProxyConfig.getInstance().getUsers();
         Iterator<User> iterator = users.iterator();
         boolean passCheck = false;
+        User user = null;
         while (iterator.hasNext()) {
-            User user = iterator.next();
+            user = iterator.next();
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                 passCheck = true;
+                break;
             }
         }
 
         if (passCheck) {
-            return true;
+            r.first = true;
+            r.second = user;
+            return r;
+        }
+        r.first = false;
+        r.second = null;
+        return r;
+    }
+
+    public static class TwoTuple{
+        private  boolean first;
+        private  User second;
+
+
+        public boolean getFirst() {
+            return first;
         }
 
-        return false;
+        public void setFirst(boolean first) {
+            this.first = first;
+        }
+
+        public User getSecond() {
+            return second;
+        }
+
+        public void setSecond(User second) {
+            this.second = second;
+        }
+
+        public TwoTuple() {
+
+        }
+
+        public TwoTuple(boolean first, User second) {
+            this.first = first;
+            this.second = second;
+        }
     }
 
 

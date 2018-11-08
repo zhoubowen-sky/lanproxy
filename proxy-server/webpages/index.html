@@ -170,7 +170,7 @@
             success: function (data) {
                 if (data.code == 20000) {
                     setCookie("token", data.data.token);
-                    window.location.href = "xbrother-proxy/?username="+data.data.username;
+                    window.location.href = "xbrother-proxy/?username=" + data.data.username + "&status=" + data.data.status;
                 }
             },
             error: function (e) {

@@ -1,16 +1,16 @@
 <div class="layui-tab layui-tab-brief">
     <ul class="layui-tab-title site-demo-title">
-        <li class="layui-this add-client-title"></li>
+        <li class="layui-this add-user-title"></li>
     </ul>
     <div class="main-content">
       <div class="layui-form-item">
-	    <label class="layui-form-label i18n-client-name"></label>
+	    <label class="layui-form-label i18n-user-name"></label>
 	    <div class="layui-input-inline">
 	      <input type="text" name="username" autocomplete="off" placeholder="" class="layui-input">
 	    </div>
 	  </div>
 	  <div class="layui-form-item">
-        <label class="layui-form-label i18n-client-key"></label>
+        <label class="layui-form-label i18n-user-key"></label>
         <div class="layui-input-inline">
           <input type="text" name="password" autocomplete="off" placeholder="" class="layui-input">
         </div>
@@ -19,6 +19,7 @@
        <div class="layui-form-item">
 	    <div class="layui-input-block">
 	      <button class="layui-btn add"></button>
+
 	    </div>
 	  </div>
     </div>
@@ -26,9 +27,9 @@
 
 
 <script>
-$(".add-client-title").html($.i18n.prop('user.add'));
-$(".i18n-client-name").html($.i18n.prop('user.name'));
-$(".i18n-client-key").html($.i18n.prop('user.key'));
+$(".add-user-title").html($.i18n.prop('user.add'));
+$(".i18n-user-name").html($.i18n.prop('user.name'));
+$(".i18n-user-key").html($.i18n.prop('user.key'));
 $("input[name='username']").attr("placeholder", $.i18n.prop('user.username.placeholder'));
 $("input[name='password']").attr("placeholder", $.i18n.prop('user.password.placeholder'));
 

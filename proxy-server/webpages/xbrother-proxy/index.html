@@ -106,13 +106,14 @@
             History.pushState('forward', null, '?state=1');
         }
 
-        window.username = "";
+        window.loginUsername = "";
+        window.loginUserStatus = 0;
         // 将用户名称展示到页面上
-        updata_username();
+        update_username();
 
         $(".logout").click(function () {
             logoutParams = {
-                username:window.username
+                username:window.loginUsername
             }
             api_invoke("/logout", logoutParams, function (data) {
                 location.href = "/";
@@ -174,7 +175,7 @@
 
     initWebLanguage();
 
-    function updata_username(){
+    function update_username(){
         var url = location.search;
         if (url.indexOf("?") != -1) {
             var str = url.substr(1);
@@ -182,8 +183,15 @@
             if (strs.length > 0){
                 var arr = strs[0].split("=");
                 if (arr.length >=2){
-                    window.username = arr[1];
-                    $(".login_username").html(window.username);
+                    window.loginUsername = arr[1];
+                    $(".login_username").html(window.loginUsername);
+                }
+                // 分割出账户状态
+                if (strs.length > 1){
+                    var arr2 = strs[1].split("=");
+                    if (arr.length >=2){
+                        window.loginUserStatus = arr2[1]
+                    }
                 }
             }
         }
