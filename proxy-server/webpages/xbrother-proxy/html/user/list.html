@@ -7,7 +7,7 @@
 
 
 <script>
-    $(".layui-this.detail-page").html($.i18n.prop('client.list'));
+    $(".layui-this.detail-page").html($.i18n.prop('user.list'));
 	window.userList = [];
 	api_invoke("/user/detail", {}, function(data) {
 		if (data.code == 20000) {
