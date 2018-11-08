@@ -1,10 +1,8 @@
 package org.fengfei.lanproxy.server.config.web.routes;
 
 import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.JsonObject;
 import org.fengfei.lanproxy.common.JsonUtil;
@@ -37,10 +35,11 @@ public class RouteConfig {
     protected static final String AUTH_COOKIE_KEY = "token";
 
     private static Logger logger = LoggerFactory.getLogger(RouteConfig.class);
+
     /**
-     * 管理员不能同时在多个地方登录
+     * 所有用户都不允许多个地方登陆
      */
-    private static String token;
+    private static Map<String,String> usernameTokenMap = new ConcurrentHashMap<>();
 
     public static void init() {
 
@@ -48,15 +47,25 @@ public class RouteConfig {
             @Override
             public void preRequest(FullHttpRequest request) {
                 String cookieHeader = request.headers().get(HttpHeaders.Names.COOKIE);
+                logger.debug("cookieHeader:{}", cookieHeader);
                 boolean authenticated = false;
 
                 if (cookieHeader != null) {
                     String[] cookies = cookieHeader.split(";");
                     for (String cookie : cookies) {
+                        // token=bb2fe6e893284d2dbe079fc798c13d1d
                         String[] cookieArr = cookie.split("=");
+                        // 判断 token 合法性
                         if (AUTH_COOKIE_KEY.equals(cookieArr[0].trim())) {
-                            if (cookieArr.length == 2 && cookieArr[1].equals(token)) {
-                                authenticated = true;
+                            if (cookieArr.length == 2 ) {
+                                Iterator<Map.Entry<String, String>> it = usernameTokenMap.entrySet().iterator();
+                                while (it.hasNext()){
+                                    Map.Entry<String, String> entry = it.next();
+                                    String token = entry.getValue();
+                                    if (cookieArr[1].equals(token)){
+                                        authenticated = true;
+                                    }
+                                }
                             }
                         }
                     }
@@ -136,14 +145,18 @@ public class RouteConfig {
 
                 String username = loginParams.get("username");
                 String password = loginParams.get("password");
+
                 logger.debug("登陆接口请求参数 username:{}  password:{}", username, password);
                 if (username == null || password == null) {
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
                 }
 
-                if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
-                    token = UUID.randomUUID().toString().replace("-", "");
-                    logger.debug("token:{}", token);
+                // TODO 校验用户合法性
+//                if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
+                if (checkUserAuthority(username, password)) {
+                    String token = UUID.randomUUID().toString().replace("-", "");
+                    logger.debug("{} 用户登录的 token:{}", username, token);
+                    usernameTokenMap.put(username, token);
                     JsonObject object = new JsonObject();
                     object.addProperty("token", token);
                     object.addProperty("username", username);
@@ -154,11 +167,30 @@ public class RouteConfig {
             }
         });
 
+
+
         ApiRoute.addRoute("/logout", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
-                token = null;
-                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String logoutParams = new String(buf, Charset.forName("UTF-8"));
+                logger.info("注销接口调用成功, 前端传入的参数:{}", logoutParams);
+                User user = JsonUtil.json2object(logoutParams, new TypeToken<User>(){});
+                String username = user.getUsername();
+                if (username == null){
+                    logger.error("注销接口，前端传入的参数异常");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "参数异常");
+                }else {
+                    if (usernameTokenMap.containsKey(username)){
+                        usernameTokenMap.remove(username);
+                        logger.debug("删除用户 {} 的 token {}", username, usernameTokenMap.get(username));
+                        return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+                    }else {
+                        logger.warn("用户{}的token不存在", username);
+                        return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+                    }
+                }
             }
         });
 
@@ -280,5 +312,30 @@ public class RouteConfig {
 
         // TODO 获取用户信息 及其相关权限
     }
+
+    public static   boolean checkUserAuthority(String username, String password) {
+
+        // TODO admin 用户特殊处理
+        if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
+            return true;
+        }
+        List<User> users = ProxyConfig.getInstance().getUsers();
+        Iterator<User> iterator = users.iterator();
+        boolean passCheck = false;
+        while (iterator.hasNext()) {
+            User user = iterator.next();
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                passCheck = true;
+            }
+        }
+
+        if (passCheck) {
+            return true;
+        }
+
+        return false;
+    }
+
+
 
 }

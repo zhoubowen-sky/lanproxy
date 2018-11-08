@@ -106,14 +106,18 @@
             History.pushState('forward', null, '?state=1');
         }
 
+        window.username = "";
+        // 将用户名称展示到页面上
+        updata_username();
+
         $(".logout").click(function () {
-            api_invoke("/logout", {}, function (data) {
+            logoutParams = {
+                username:window.username
+            }
+            api_invoke("/logout", logoutParams, function (data) {
                 location.href = "/";
             })
         });
-
-        // 将用户名称展示到页面上
-        updata_username();
     });
 
     function update_menu() {
@@ -140,12 +144,6 @@
                 $(".user-list").html($.i18n.prop('menu.user.list'));
                 $(".user-list-sub").html($.i18n.prop('menu.user.list'));
                 $(".user-add").html($.i18n.prop('menu.user.add'));
-
-
-
-
-
-
 
 
 
@@ -184,8 +182,8 @@
             if (strs.length > 0){
                 var arr = strs[0].split("=");
                 if (arr.length >=2){
-                    var username = arr[1];
-                    $(".login_username").html(username);
+                    window.username = arr[1];
+                    $(".login_username").html(window.username);
                 }
             }
         }
