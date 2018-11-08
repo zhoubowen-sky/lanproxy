@@ -18,10 +18,14 @@
 		        window.clientIndex = $(this).attr("data-index");
 		        load_page("html/lan/list.html");
 			});
-			$(".client-edit").click(function() {
-				window.clientIndex = $(this).attr("data-index");
-				load_page("html/client/edit.html");
-			});
+            $(".client-edit").click(function() {
+                window.clientIndex = $(this).attr("data-index");
+                load_page("html/client/edit.html");
+            });
+            $(".client-detail").click(function() {
+                window.clientIndex = $(this).attr("data-index");
+                load_page("html/lan/list.html");
+            });
 			$(".client-delete").click(function() {
 				window.clientIndex = $(this).attr("data-index");
 				layer.confirm($.i18n.prop('public.confirm.delete'), {
@@ -43,6 +47,10 @@
 			alert(data.message);
 		}
 	});
+
+	// 客户端列表
+
+
 </script>
 
 <script id="client-tpl" type="text/html">
@@ -68,7 +76,8 @@
                 <% }%>
             </td>
             <td>
-              <a data-index="<%:=i%>" class="layui-btn layui-btn-mini client-edit"><%:=$.i18n.prop('public.edit')%></a>
+                <a data-index="<%:=i%>" class="layui-btn layui-btn-mini client-detail"><%:=$.i18n.prop('public.detail')%></a>
+                <a data-index="<%:=i%>" class="layui-btn layui-btn-mini client-edit"><%:=$.i18n.prop('public.edit')%></a>
               <a data-index="<%:=i%>" class="layui-btn layui-btn-danger layui-btn-mini client-delete"><%:=$.i18n.prop('public.delete')%></a>
             </td>
         </tr>
