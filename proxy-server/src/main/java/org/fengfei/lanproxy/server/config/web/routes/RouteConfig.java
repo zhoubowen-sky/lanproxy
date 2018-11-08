@@ -209,7 +209,6 @@ public class RouteConfig {
             }
         });
 
-
         // 新增用户
         ApiRoute.addRoute("/user/add", new RequestHandler() {
             @Override
@@ -222,14 +221,24 @@ public class RouteConfig {
                 logger.debug("user:{}, {}", user.getUsername(), user.getPassword());
                 user.setStatus(1);
                 List<User> users = ProxyConfig.getInstance().getUsers();
-
-                // TODO 校验是否已经有此用户
-
-                users.add(user);
-                String s = JsonUtil.object2json(users);
-                ProxyConfig.getInstance().updateUserInfo(s);
-
-                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+                // 校验是否已经有此用户
+                Boolean hasTheUser = false;
+                Iterator<User> iterator = users.iterator();
+                while (iterator.hasNext()){
+                    User u = iterator.next();
+                    if (u.getUsername().equals(user.getUsername())){
+                        hasTheUser = true;
+                    }
+                }
+                if (hasTheUser){
+                    logger.warn("用户名与系统已有用户重复，请更换其他用户名");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名与系统已有用户重复，请更换其他用户名");
+                }else {
+                    users.add(user);
+                    String s = JsonUtil.object2json(users);
+                    ProxyConfig.getInstance().updateUserInfo(s);
+                    return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+                }
             }
         });
 
@@ -245,7 +254,6 @@ public class RouteConfig {
                 User u = JsonUtil.json2object(config, new TypeToken<User>(){});
 
                 List<User> users = ProxyConfig.getInstance().getUsers();
-
                 Iterator<User> iterator = users.iterator();
                 while (iterator.hasNext()){
                     User uu = iterator.next();
