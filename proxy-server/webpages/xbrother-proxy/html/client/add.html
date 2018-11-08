@@ -3,12 +3,14 @@
         <li class="layui-this add-client-title"></li>
     </ul>
     <div class="main-content">
+
       <div class="layui-form-item">
 	    <label class="layui-form-label i18n-client-name"></label>
 	    <div class="layui-input-inline">
 	      <input type="text" name="name" autocomplete="off" placeholder="" class="layui-input">
 	    </div>
 	  </div>
+
 	  <div class="layui-form-item">
         <label class="layui-form-label i18n-client-key"></label>
         <div class="layui-input-inline">
@@ -16,11 +18,22 @@
         </div>
         <div class="layui-form-mid"><a class="layui-btn layui-btn-mini random-key random"></a></div>
       </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label i18n-client-tag"></label>
+            <div class="layui-input-inline">
+                <input type="text" name="tag" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+
+
        <div class="layui-form-item">
 	    <div class="layui-input-block">
 	      <button class="layui-btn add"></button>
 	    </div>
 	  </div>
+
     </div>
 </div>
 
@@ -29,8 +42,10 @@
 $(".add-client-title").html($.i18n.prop('client.add'));
 $(".i18n-client-name").html($.i18n.prop('client.name'));
 $(".i18n-client-key").html($.i18n.prop('client.key'));
+$(".i18n-client-tag").html($.i18n.prop('client.tag'));
 $("input[name='name']").attr("placeholder", $.i18n.prop('client.name.placeholder'));
 $("input[name='clientKey']").attr("placeholder", $.i18n.prop('client.key.placeholder'));
+$("input[name='tag']").attr("placeholder", $.i18n.prop('client.tag.placeholder'));
 $(".random").html($.i18n.prop('client.randomkey'));
 $(".add").html($.i18n.prop('public.submit'));
 $(".random").click(function(){
@@ -52,9 +67,12 @@ $(".add").click(function(){
         });
         return;
     }
+
+    var tag = $("input[name='tag']").val();
     clientList.push({
     	name:name,
     	clientKey:clientKey,
+        tag:tag,
     	proxyMappings:[]
     });
 
@@ -85,4 +103,19 @@ function uuid() {
 	var uuid = s.join("");
 	return uuid;
 }
+
+// TODO 客户端标签提示
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>

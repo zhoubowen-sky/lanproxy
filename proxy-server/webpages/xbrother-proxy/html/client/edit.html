@@ -3,12 +3,15 @@
         <li class="layui-this edit-client-title"></li>
     </ul>
     <div class="main-content">
+
       <div class="layui-form-item">
 	    <label class="layui-form-label i18n-client-name"></label>
 	    <div class="layui-input-inline">
 	      <input type="text" name="name" autocomplete="off" placeholder="" class="layui-input">
 	    </div>
 	  </div>
+
+
 	  <div class="layui-form-item">
         <label class="layui-form-label i18n-client-key"></label>
         <div class="layui-input-inline">
@@ -16,12 +19,24 @@
         </div>
         <div class="layui-form-mid"><a class="layui-btn layui-btn-mini random-key random"></a></div>
       </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label i18n-client-tag"></label>
+            <div class="layui-input-inline">
+                <input type="text" name="tag" autocomplete="off" placeholder="" class="layui-input">
+            </div>
+        </div>
+
+
        <div class="layui-form-item">
 	    <div class="layui-input-block">
 	      <button class="layui-btn update"></button>
 	      <button class="layui-btn layui-btn-primary back"></button>
 	    </div>
 	  </div>
+
+
     </div>
 </div>
 
@@ -30,13 +45,16 @@
 $(".edit-client-title").html($.i18n.prop('client.edit'));
 $(".i18n-client-name").html($.i18n.prop('client.name'));
 $(".i18n-client-key").html($.i18n.prop('client.key'));
+$(".i18n-client-tag").html($.i18n.prop('client.tag'));
 $("input[name='name']").attr("placeholder", $.i18n.prop('client.name.placeholder'));
 $("input[name='clientKey']").attr("placeholder", $.i18n.prop('client.key.placeholder'));
+$("input[name='tag']").attr("placeholder", $.i18n.prop('client.tag.placeholder'));
 $(".random").html($.i18n.prop('client.randomkey'));
 $(".update").html($.i18n.prop('public.submit'));
 $(".back").html($.i18n.prop('public.back'));
 $("input[name='name']").val(clientList[clientIndex].name);
 $("input[name='clientKey']").val(clientList[clientIndex].clientKey);
+$("input[name='tag']").val(clientList[clientIndex].tag);
 
 $(".random").click(function(){
 	$("input[name='clientKey']").val(uuid());
@@ -44,7 +62,8 @@ $(".random").click(function(){
 
 $(".update").click(function(){
 	clientList[clientIndex]['name'] = $("input[name='name']").val();
-	clientList[clientIndex]['clientKey'] = $("input[name='clientKey']").val();
+    clientList[clientIndex]['clientKey'] = $("input[name='clientKey']").val();
+    clientList[clientIndex]['tag'] = $("input[name='tag']").val();
     api_invoke("/config/update", clientList, function(data) {
         if (data.code == 20000) {
             layer.alert($.i18n.prop('public.notice.updatesuccess'), {title: $.i18n.prop('public.tips')}, function(index){

@@ -279,23 +279,6 @@ public class ProxyConfig implements Serializable {
         notifyconfigChangedListeners();
     }
 
-    /**
-     * 客户端分组的更新及初始化
-     * @param clientGroupJson 传入配置信息的 json 字符串
-     */
-    public void update_client_group(String clientGroupJson){
-//        File file = new File(CLIENT_GROUP_FILE);
-//        try {
-//            if (clientGroupJson == null && file.exists()) {
-//                // 此时传入为空 且客户端配置文件存在
-//                clientGroupJson = fileToString(file);
-//            }
-//        } catch (Exception e) {
-//            logger.error("打开客户端分组配置文件错误:", e.getMessage());
-//            throw new RuntimeException(e);
-//        }
-    }
-
 
     /**
      * 解析客户端的配置文件
@@ -471,7 +454,22 @@ public class ProxyConfig implements Serializable {
          */
         private List<ClientProxyMapping> proxyMappings;
 
+        /**
+         * 客户端当前的连接状态 1 为在线 0 为离线
+         */
         private int status;
+        /**
+         * 客户端的 tag 标签 用以分组展示
+         */
+        private String tag;
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
 
         public String getClientKey() {
             return clientKey;

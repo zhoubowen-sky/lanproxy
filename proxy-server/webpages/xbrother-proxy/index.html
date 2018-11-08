@@ -35,8 +35,40 @@
 <script src="/jquery/jquery.i18n.properties.min.js" type="text/javascript"></script>
 <script src="/template/template.js"></script>
 <script>
+    
+    Array.prototype.distinct = function () {
+        var arr = this,
+            result = [],
+            i,
+            j,
+            len = arr.length;
+        for (i = 0; i < len; i++) {
+            for (j = i + 1; j < len; j++) {
+                if (arr[i] === arr[j]) {
+                    j = ++i;
+                }
+            }
+            result.push(arr[i]);
+        }
+        return result;
+    };
+
+    Array.prototype.indexOf = function(val) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i] == val) return i;
+        }
+        return -1;
+    };
+    Array.prototype.remove = function(val) {
+        var index = this.indexOf(val);
+        if (index > -1) {
+            this.splice(index, 1);
+        }
+    };
+
     window.clientList = [];// 存储所有的客户端
     window.userList = []; // 存储所有的用户信息
+    window.tags = []; // 存储所有的标签信息
     function api_invoke(uri, params, callback) {
         var index = layer.load(1, {
             shade: [0.1, '#fff']
@@ -125,8 +157,23 @@
         api_invoke("/config/detail", {}, function (data) {
             if (data.code == 20000) {
                 clientList = data.data;
+
+                // TODO 根据接口动态生成 tag 的菜单 并绑定 click 事件
+                console.log("客户端信息:", clientList);
+                var clientLength = clientList.length;
+                for (var i = 0; i < clientLength; i++){
+                    var t = clientList[i].tag;
+                    if (t === undefined || t === "" || t === null){
+                        t = "";
+                    }
+                    window.tags.push(t);
+                }
+                window.tags = window.tags.distinct();
+                console.log("所有的 tags 去重后:", window.tags);
+
                 var html = template($("#menu-tpl").html(), {
-                    list: clientList
+                    list: clientList,
+                    tags:window.tags
                 });
                 $(".layui-side-scroll").html(html);
 
@@ -148,12 +195,20 @@
                 $(".user-add").html($.i18n.prop('menu.user.add'));
 
 
-
-
                 $(".menu-item").click(function () {
                     window.clientIndex = $(this).attr("data-index");
                     load_page("html/lan/list.html");
                 });
+
+                // menu-item-tag
+                $(".menu-item-tag").click(function () {
+                    window.tagIndex = $(this).attr("data-index");
+                    console.log("当前tag索引:", window.tagIndex);
+                    load_page("html/client/tag.html");
+                });
+
+
+
             } else {
                 alert(data.message);
             }
@@ -199,7 +254,6 @@
     }
 
 
-
     jQuery.i18n.properties({
         name: 'lang', //资源文件名称
         path: '/i18n/', //资源文件路径
@@ -231,15 +285,46 @@
                 </dd>
 
                 <!--<dd data-name="grid">-->
-                    <!--<a href="javascript:load_page('html/client/group.html');"class="client-group third-class"></a>-->
+                    <!--<a href="javascript:;">栅格<span class="layui-nav-more"></span></a>-->
+                    <!--<dl class="layui-nav-child">-->
+                        <!--<dd data-name="list">-->
+                            <!--<a lay-href="component/grid/list.html">等比例列表排列</a>-->
+                        <!--</dd>-->
+                        <!--<dd data-name="mobile">-->
+                            <!--<a lay-href="component/grid/mobile.html">按移动端排列</a>-->
+                        <!--</dd>-->
+                    <!--</dl>-->
                 <!--</dd>-->
+
+
+                <dd data-name="grid">
+                    <a href="javascript:;" class="client-group"><span class="layui-nav-more"></span></a>
+                    <dl class="layui-nav-child">
+
+                        <%for(var i = 0; i < tags.length; i++) {%>
+                        <dd>
+
+                            <% if(tags[i] === ""){ %>
+                            <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>">未分组</a>
+                            <% } else { %>
+                            <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>"><%:=tags[i]%></a>
+                            <% }%>
+
+                        </dd>
+                        <%}%>
+
+
+                    </dl>
+                </dd>
+
+
                 <dd>
                     <a href="javascript:load_page('html/client/add.html');" class="client-add"></a>
                 </dd>
             </dl>
         </li>
 
-        <!--<li class="layui-nav-item layui-nav-itemed">-->
+
         <li class="layui-nav-item">
             <a class="client-config" href="javascript:;"></a>
             <dl class="layui-nav-child">

@@ -48,9 +48,6 @@
 		}
 	});
 
-	// 客户端列表
-
-
 </script>
 
 <script id="client-tpl" type="text/html">
@@ -60,6 +57,7 @@
             <th class="th-client-name"><%:=$.i18n.prop('client.name')%></th>
             <th class="th-client-key"><%:=$.i18n.prop('client.key')%></th>
             <th class="th-status"><%:=$.i18n.prop('client.status')%></th>
+            <th class="th-client-tag"><%:=$.i18n.prop('client.tag')%></th>
             <th class="th-options"><%:=$.i18n.prop('public.options')%></th>
         </tr>
     </thead>
@@ -75,8 +73,13 @@
                 <span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('client.status.offline')%></span>
                 <% }%>
             </td>
+
             <td>
-                <a data-index="<%:=i%>" class="layui-btn layui-btn-mini client-detail"><%:=$.i18n.prop('public.detail')%></a>
+                <span class="layui-badge layui-bg-gray"><%:=data[i].tag%></span>
+            </td>
+
+            <td>
+                <a data-index="<%:=i%>" class="layui-btn layui-btn-mini layui-btn-mini client-detail"><%:=$.i18n.prop('public.detail')%></a>
                 <a data-index="<%:=i%>" class="layui-btn layui-btn-mini client-edit"><%:=$.i18n.prop('public.edit')%></a>
               <a data-index="<%:=i%>" class="layui-btn layui-btn-danger layui-btn-mini client-delete"><%:=$.i18n.prop('public.delete')%></a>
             </td>
