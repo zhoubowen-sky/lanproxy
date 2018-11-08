@@ -169,8 +169,6 @@ public class RouteConfig {
             }
         });
 
-
-
         ApiRoute.addRoute("/logout", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
@@ -210,7 +208,7 @@ public class RouteConfig {
             }
         });
 
-        // TODO 处理更新用户信息
+        // 处理更新用户信息
         ApiRoute.addRoute("/user/update", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
@@ -296,29 +294,29 @@ public class RouteConfig {
                         logger.debug("删除的用户为：{}", uu.getUsername());
                     }
                 }
-
-
                 String s = JsonUtil.object2json(users);
                 logger.debug("删除用户后的所有用户信息:{}", s);
                 ProxyConfig.getInstance().updateUserInfo(s);
-
                 return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
             }
         });
 
+        // TODO 客户端分组相关的 API
 
 
-        // TODO 获取程序版本
 
-        // TODO 获取协议版本
+
+
+
+
 
     }
 
     public static TwoTuple checkUserAuthority(String username, String password) {
         // admin 用户特殊处理
         TwoTuple r = new TwoTuple();
-        if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername()) && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
-
+        if (username.equals(ProxyConfig.getInstance().getConfigAdminUsername())
+                && password.equals(ProxyConfig.getInstance().getConfigAdminPassword())) {
             User adminUser = new User();
             adminUser.setUsername(ProxyConfig.getInstance().getConfigAdminUsername());
             adminUser.setPassword(ProxyConfig.getInstance().getConfigAdminPassword());
@@ -350,9 +348,19 @@ public class RouteConfig {
     }
 
     public static class TwoTuple{
+
         private  boolean first;
+
         private  User second;
 
+        public TwoTuple() {
+
+        }
+
+        public TwoTuple(boolean first, User second) {
+            this.first = first;
+            this.second = second;
+        }
 
         public boolean getFirst() {
             return first;
@@ -367,15 +375,6 @@ public class RouteConfig {
         }
 
         public void setSecond(User second) {
-            this.second = second;
-        }
-
-        public TwoTuple() {
-
-        }
-
-        public TwoTuple(boolean first, User second) {
-            this.first = first;
             this.second = second;
         }
     }

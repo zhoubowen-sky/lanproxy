@@ -30,17 +30,23 @@ public class ProxyConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private static Logger logger = LoggerFactory.getLogger(ProxyConfig.class);
+
     /**
-     * 配置文件为config.json 客户端信息的配置
+     * 客户端配置文件 config.json
      */
     public static final String CONFIG_FILE;
 
     /**
-     * 用户信息的配置文件 user.json 普通用户 不包括系统出厂默认的超级管理员用户
+     * 用户信息的配置文件 user.json 普通用户
      */
     public static final String USER_CONFIG_FILE;
 
-    private static Logger logger = LoggerFactory.getLogger(ProxyConfig.class);
+    /**
+     * 客户端分组配置文件 group.json
+     */
+    public static final String CLIENT_GROUP_FILE;
+
 
     static {
         // 代理配置信息存放在用户根目录下
@@ -53,6 +59,8 @@ public class ProxyConfig implements Serializable {
         CONFIG_FILE = dataPath + "/config.json";
         // 用户账户配置信息
         USER_CONFIG_FILE  = dataPath + "/user.json";
+        // 客户端分组配置信息
+        CLIENT_GROUP_FILE = dataPath + "/group.json";
     }
 
     /**
@@ -121,16 +129,15 @@ public class ProxyConfig implements Serializable {
      */
     private List<ConfigChangedListener> configChangedListeners = new ArrayList<ConfigChangedListener>();
 
-    /**
-     * 用户名与客户端之间的映射关系
-     */
-    private volatile Map<String, List<Client>> userClientMapping = new HashMap<String, List<Client>>();
+//    /**
+//     * 用户名与客户端之间的映射关系
+//     */
+//    private volatile Map<String, List<Client>> userClientMapping = new HashMap<String, List<Client>>();
 
     /**
-     * 用户列表
+     * 所有用户列表
      */
     private List<User> users;
-
 
     private ProxyConfig() {
 
@@ -273,9 +280,26 @@ public class ProxyConfig implements Serializable {
         notifyconfigChangedListeners();
     }
 
+    /**
+     * 客户端分组的更新及初始化
+     * @param clientGroupJson 传入配置信息的 json 字符串
+     */
+    public void update_client_group(String clientGroupJson){
+//        File file = new File(CLIENT_GROUP_FILE);
+//        try {
+//            if (clientGroupJson == null && file.exists()) {
+//                // 此时传入为空 且客户端配置文件存在
+//                clientGroupJson = fileToString(file);
+//            }
+//        } catch (Exception e) {
+//            logger.error("打开客户端分组配置文件错误:", e.getMessage());
+//            throw new RuntimeException(e);
+//        }
+    }
+
 
     /**
-     * 解析配置文件
+     * 解析客户端的配置文件
      */
     public void update(String proxyMappingConfigJson) {
 
@@ -346,9 +370,6 @@ public class ProxyConfig implements Serializable {
 
         notifyconfigChangedListeners();
     }
-
-
-
 
     /**
      * 配置更新通知
@@ -488,6 +509,40 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
+     * 客户端分组类
+     */
+    public static class Group implements Serializable{
+
+        /**
+         * 分组名称
+         */
+        private String groupName;
+
+        /**
+         * 该分组下的客户端列表
+         */
+        private List<String> clientKeys;
+
+        public String getGroupName() {
+            return groupName;
+        }
+
+        public void setGroupName(String groupName) {
+            this.groupName = groupName;
+        }
+
+        public List<String> getClientKeys() {
+            return clientKeys;
+        }
+
+        public void setClientKeys(List<String> clientKeys) {
+            this.clientKeys = clientKeys;
+        }
+
+
+    }
+
+    /**
      * 用户信息的描述
      *
      * @author zhoubowen
@@ -606,13 +661,6 @@ public class ProxyConfig implements Serializable {
         void onChanged();
     }
 
-
-
-
-
-
-
-
     /**
      * 文件对象转换为字符串
      * @param file 打开的文件句柄
@@ -636,5 +684,9 @@ public class ProxyConfig implements Serializable {
             return s;
         }
     }
+
+
+
+
 
 }

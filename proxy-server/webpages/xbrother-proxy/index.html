@@ -134,8 +134,9 @@
                     var element = layui.element;
                 });
 
+                $(".client-list-manage").html($.i18n.prop('menu.client.manage'));
                 $(".client-list").html($.i18n.prop('menu.client.list'));
-                $(".client-list-sub").html($.i18n.prop('menu.client.list'));
+                $(".client-group").html($.i18n.prop('menu.client.group'));
                 $(".client-add").html($.i18n.prop('menu.client.add'));
 
                 $(".client-config").html($.i18n.prop('menu.client.config'));
@@ -218,11 +219,14 @@
 <script id="menu-tpl" type="text/html">
     <ul class="layui-nav layui-nav-tree">
 
-        <li class="layui-nav-item layui-nav-itemed"><a class="client-list" href="javascript:;"></a>
+        <li class="layui-nav-item layui-nav-itemed"><a class="client-list-manage" href="javascript:;"></a>
             <dl class="layui-nav-child">
                 <dd class="layui-this">
-                    <a href="javascript:load_page('html/client/list.html');" class="client-list-sub"></a>
+                    <a href="javascript:load_page('html/client/list.html');" class="client-list"></a>
                 </dd>
+                <!--<dd>-->
+                    <!--<a href="javascript:load_page('html/client/group.html');" class="client-group"></a>-->
+                <!--</dd>-->
                 <dd>
                     <a href="javascript:load_page('html/client/add.html');" class="client-add"></a>
                 </dd>
@@ -254,11 +258,9 @@
         </li>
 
 
-
         <li class="layui-nav-item layui-nav-itemed">
             <a class="statistics" href="javascript:load_page('html/statistics/list.html');"></a>
         </li>
-
 
 
     </ul>
