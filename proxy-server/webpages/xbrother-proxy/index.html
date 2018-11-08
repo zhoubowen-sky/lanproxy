@@ -2,8 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title></title>
     <link rel="stylesheet" href="/xbrother-proxy/layui/css/layui.css">
     <style type="text/css">
@@ -31,6 +30,7 @@
     <div class="layui-footer"></div>
 </div>
 <script src="/xbrother-proxy/layui/layui.js"></script>
+<!--<script src="/xbrother-proxy/layui/layui.all.js"></script>-->
 <script src="/jquery/jquery-3.1.1.min.js"></script>
 <script src="/jquery/jquery.i18n.properties.min.js" type="text/javascript"></script>
 <script src="/template/template.js"></script>
@@ -198,6 +198,8 @@
         }
     }
 
+
+
     jQuery.i18n.properties({
         name: 'lang', //资源文件名称
         path: '/i18n/', //资源文件路径
@@ -215,6 +217,9 @@
             });
         }
     });
+
+
+
 </script>
 <script id="menu-tpl" type="text/html">
     <ul class="layui-nav layui-nav-tree">
@@ -224,8 +229,9 @@
                 <dd class="layui-this">
                     <a href="javascript:load_page('html/client/list.html');" class="client-list"></a>
                 </dd>
-                <!--<dd>-->
-                    <!--<a href="javascript:load_page('html/client/group.html');" class="client-group"></a>-->
+
+                <!--<dd data-name="grid">-->
+                    <!--<a href="javascript:load_page('html/client/group.html');"class="client-group third-class"></a>-->
                 <!--</dd>-->
                 <dd>
                     <a href="javascript:load_page('html/client/add.html');" class="client-add"></a>
@@ -266,5 +272,6 @@
 
     </ul>
 </script>
+
 </body>
 </html>
