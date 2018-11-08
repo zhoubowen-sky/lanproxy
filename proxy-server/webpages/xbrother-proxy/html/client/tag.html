@@ -12,23 +12,19 @@
     api_invoke("/config/detail", {}, function(data) {
         if (data.code == 20000) {
             clientList = data.data;
-            // var clientListTmp = {};
-            // clientListTmp.data = [];
-            // var currentTag = window.tags[window.tagIndex];
-            // console.log("当前查看的客户端tag:", currentTag);
-            // for (var i = 0; i < clientList.length; i++){
-            //     var t = clientList[i].tag;
-            //     if (t === undefined || t === "" || t === null){
-            //         t = "";
-            //     }
-            //     if (t === currentTag){
-            //         console.log("---:", clientList[i], "index:", i);
-            //         clientListTmp.data.push(clientList[i])
-            //     }
-            // }
-            // console.log("data:",data);
-            // console.log("clientListTmp:", clientListTmp);
-
+            var clientListTmp = data;
+            clientListTmp.data = [];
+            var currentTag = window.tags[window.tagIndex];
+            console.log("当前查看的客户端tag:", currentTag);
+            for (var i = 0; i < clientList.length; i++){
+                var t = clientList[i].tag;
+                if (t === undefined || t === "" || t === null){
+                    t = "";
+                }
+                if (t === currentTag){
+                    clientListTmp.data.push(clientList[i])
+                }
+            }
 
             var html = template($("#client-tpl").html(), data);
             $(".main-content").html(html);

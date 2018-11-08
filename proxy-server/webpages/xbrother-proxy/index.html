@@ -30,7 +30,6 @@
     <div class="layui-footer"></div>
 </div>
 <script src="/xbrother-proxy/layui/layui.js"></script>
-<!--<script src="/xbrother-proxy/layui/layui.all.js"></script>-->
 <script src="/jquery/jquery-3.1.1.min.js"></script>
 <script src="/jquery/jquery.i18n.properties.min.js" type="text/javascript"></script>
 <script src="/template/template.js"></script>
@@ -158,8 +157,6 @@
             if (data.code == 20000) {
                 clientList = data.data;
 
-                // TODO 根据接口动态生成 tag 的菜单 并绑定 click 事件
-                console.log("客户端信息:", clientList);
                 var clientLength = clientList.length;
                 for (var i = 0; i < clientLength; i++){
                     var t = clientList[i].tag;
@@ -284,18 +281,6 @@
                     <a href="javascript:load_page('html/client/list.html');" class="client-list"></a>
                 </dd>
 
-                <!--<dd data-name="grid">-->
-                    <!--<a href="javascript:;">栅格<span class="layui-nav-more"></span></a>-->
-                    <!--<dl class="layui-nav-child">-->
-                        <!--<dd data-name="list">-->
-                            <!--<a lay-href="component/grid/list.html">等比例列表排列</a>-->
-                        <!--</dd>-->
-                        <!--<dd data-name="mobile">-->
-                            <!--<a lay-href="component/grid/mobile.html">按移动端排列</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-                <!--</dd>-->
-
                 <dd>
                     <a href="javascript:load_page('html/client/add.html');" class="client-add"></a>
                 </dd>
@@ -308,7 +293,7 @@
                         <dd>
 
                             <% if(tags[i] === ""){ %>
-                            <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>">未分组</a>
+                            <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>">无标签</a>
                             <% } else { %>
                             <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>"><%:=tags[i]%></a>
                             <% }%>
