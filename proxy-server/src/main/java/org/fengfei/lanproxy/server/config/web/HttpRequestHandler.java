@@ -79,12 +79,14 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         String uriPath = uri.getPath();
         uriPath = uriPath.equals("/") ? "/index.html" : uriPath;
         String path = "";
+
         if (ProxyConfig.getInstance().getRunningMode().equals("release")){
             logger.debug("当前运行模式为 release");
              path = PAGE_FOLDER + uriPath;
         }else {
             path =  ProxyConfig.getInstance().getWebPath() + uriPath;
         }
+        logger.debug("path:{}", path);
         File rfile = new File(path);
         if (rfile.isDirectory()) {
             path = path + "/index.html";
