@@ -82,10 +82,10 @@
             </td>
             <td>
 
-                <% if(window.loginUserStatus === 3 || data[i].username == window.loginUsername){ %>
+                <% if(window.loginUserStatus == 3 || data[i].username === window.loginUsername){ %>
                     <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-mini user-edit"><%:=$.i18n.prop('public.edit')%></a>
 
-                    <% if(window.loginUserStatus === 3){ %>
+                    <% if(window.loginUserStatus == 3){ %>
                         <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-danger layui-btn-mini user-delete"><%:=$.i18n.prop('public.delete')%></a>
 
                     <% } %>
