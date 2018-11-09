@@ -56,7 +56,7 @@
     window.clientList = [];// 存储所有的客户端
     window.userList = []; // 存储所有的用户信息
     window.tags = []; // 存储所有的标签信息
-    window.tagMap = []; // 存储映射信息 [{key: 'clientKey1', value: 'tag1'}, {key: 'clientKey2', value: 'tag1'}]
+    window.tagMap = {}; // 存储映射信息 每个 tag 对应的客户端个数
     function api_invoke(uri, params, callback) {
         var index = layer.load(1, {
             shade: [0.1, '#fff']
@@ -152,7 +152,12 @@
                         t = "";
                     }
                     window.tags.push(t);
-                    window.tagMap.push({key: clientList[i].clientKey, value: t});
+                    if (window.tagMap[t] !== null && window.tagMap[t] !== undefined) {
+                        window.tagMap[t]++;
+                    }else {
+                        window.tagMap[t] = 1;
+                    }
+
                 }
                 window.tags = window.tags.distinct();
                 console.log("所有的 tags 去重后:", window.tags);
@@ -169,7 +174,7 @@
                 });
 
                 $(".client-list-manage").html($.i18n.prop('menu.client.manage'));
-                $(".client-list").html($.i18n.prop('menu.client.list'));
+                $(".client-list").html($.i18n.prop('menu.client.list') + " ("+clientLength+")");
                 $(".client-group").html($.i18n.prop('menu.client.group'));
                 $(".client-add").html($.i18n.prop('menu.client.add'));
 
@@ -279,9 +284,9 @@
                         <%for(var i = 0; i < tags.length; i++) {%>
                         <dd>
                             <% if(tags[i] === ""){ %>
-                                <a href="javascript:;" class="menu-item-tag" data-tag="<%:=tags[i]%>" data-index="<%:=i%>">无标签</a>
+                                <a href="javascript:;" class="menu-item-tag" data-tag="<%:=tags[i]%>" data-index="<%:=i%>">无标签 (<%:=tagMap[tags[i]]%>)</a>
                             <% } else { %>
-                                <a href="javascript:;" class="menu-item-tag" data-tag="<%:=tags[i]%>" data-index="<%:=i%>"><%:=tags[i]%></a>
+                                <a href="javascript:;" class="menu-item-tag" data-tag="<%:=tags[i]%>" data-index="<%:=i%>"><%:=tags[i]%> (<%:=tagMap[tags[i]]%>)</a>
                             <% }%>
                         </dd>
                         <%}%>
