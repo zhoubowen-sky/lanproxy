@@ -98,12 +98,12 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		if c.String("s") == "" {
 			log.Println("代理服务器IP为必填参数, 使用 -s")
-			log.Println("exit")
+			log.Println("退出")
 			return nil
 		}
 		if c.String("k") == "" {
 			log.Println("客户端唯一秘钥为必填参数, 使用 -k")
-			log.Println("exit")
+			log.Println("退出")
 			return nil
 		}
 		log.Println("客户端唯一秘钥:", c.String("k"))
@@ -155,7 +155,7 @@ func start(key string, ip string, port int, conf *tls.Config) {
 		messageHandler.connHandler = connHandler
 		messageHandler.clientKey = key
 		messageHandler.startHeartbeat()
-		log.Println("start listen cmd message , clientKey:", fmt.Sprintf("%#v", messageHandler.clientKey))
+		log.Println("开始监听消息 , 客户端唯一ID:", fmt.Sprintf("%#v", messageHandler.clientKey))
 		connHandler.Listen(conn, &messageHandler)
 	}
 }
@@ -171,7 +171,7 @@ func connect(key string, ip string, port int, conf *tls.Config) net.Conn {
 			conn, err = net.Dial("tcp", ip+":"+p)
 		}
 		if err != nil {
-			log.Println("Error dialing", err.Error())
+			log.Println("连接发生异常：", err.Error())
 			time.Sleep(time.Second * 3)
 			continue
 		}
@@ -252,7 +252,7 @@ func (messageHandler *LPMessageHandler) MessageReceived(connHandler *ConnHandler
 }
 
 func (messageHandler *LPMessageHandler) ConnSuccess(connHandler *ConnHandler) {
-	log.Println("connSuccess, clientkey:", messageHandler.clientKey)
+	log.Println("与服务端建立连接成功 客户端唯一ID:", messageHandler.clientKey)
 	if messageHandler.clientKey != "" {
 		msg := Message{Type: C_TYPE_AUTH}
 		msg.Uri = messageHandler.clientKey
@@ -261,7 +261,7 @@ func (messageHandler *LPMessageHandler) ConnSuccess(connHandler *ConnHandler) {
 }
 
 func (messageHandler *LPMessageHandler) ConnError(connHandler *ConnHandler) {
-	log.Println("connError:", connHandler)
+	log.Println("连接失败:", connHandler)
 	if messageHandler.die != nil {
 		close(messageHandler.die)
 	}
@@ -278,14 +278,14 @@ func (messageHandler *LPMessageHandler) ConnError(connHandler *ConnHandler) {
 }
 
 func (messageHandler *LPMessageHandler) startHeartbeat() {
-	log.Println("start heartbeat:", messageHandler.connHandler)
+	log.Println("开启心跳:", messageHandler.connHandler)
 	messageHandler.die = make(chan struct{})
 	go func() {
 		for {
 			select {
 			case <-time.After(time.Second * HEARTBEAT_INTERVAL):
 				if time.Now().Unix()-messageHandler.connHandler.ReadTime >= 2*HEARTBEAT_INTERVAL {
-					log.Println("proxy connection timeout:", messageHandler.connHandler, time.Now().Unix()-messageHandler.connHandler.ReadTime)
+					log.Println("连接超时:", messageHandler.connHandler, time.Now().Unix()-messageHandler.connHandler.ReadTime)
 					messageHandler.connHandler.conn.Close()
 					return
 				}
@@ -308,7 +308,7 @@ func (pooler *ProxyConnPooler) Create(pool *ConnHandlerPool) (*ConnHandler, erro
 	}
 
 	if err != nil {
-		log.Println("Error dialing", err.Error())
+		log.Println("Error dialing:", err.Error())
 		return nil, err
 	} else {
 		messageHandler := LPMessageHandler{connPool: pool}

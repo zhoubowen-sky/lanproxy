@@ -20,14 +20,14 @@ type ConnHandlerPool struct {
 
 func (connPool *ConnHandlerPool) Init() {
 	connPool.conns = make([]*ConnHandler, 0, connPool.Size)
-	log.Printf("init connection pool, len %d, cap %d", len(connPool.conns), cap(connPool.conns))
+	log.Printf("初始化连接池, len %d, cap %d", len(connPool.conns), cap(connPool.conns))
 }
 
 func (connPool *ConnHandlerPool) Get() (*ConnHandler, error) {
 	for {
 		if len(connPool.conns) == 0 {
 			conn, err := connPool.Pooler.Create(connPool)
-			log.Println("create connection: ", conn, err)
+			log.Println("创建连接: ", err)
 			if err != nil {
 				return nil, err
 			}
