@@ -56,6 +56,7 @@
     window.clientList = [];// 存储所有的客户端
     window.userList = []; // 存储所有的用户信息
     window.tags = []; // 存储所有的标签信息
+    window.tagMap = []; // 存储映射信息 [{key: 'clientKey1', value: 'tag1'}, {key: 'clientKey2', value: 'tag1'}]
     function api_invoke(uri, params, callback) {
         var index = layer.load(1, {
             shade: [0.1, '#fff']
@@ -123,7 +124,7 @@
         }
         window.onhashchange = function () {
             History.pushState('forward', null, '?state=1');
-        }
+        };
 
         window.loginUsername = "";
         window.loginUserStatus = 0;
@@ -133,7 +134,7 @@
         $(".logout").click(function () {
             logoutParams = {
                 username:window.loginUsername
-            }
+            };
             api_invoke("/logout", logoutParams, function (data) {
                 location.href = "/";
             })
@@ -144,7 +145,6 @@
         api_invoke("/config/detail", {}, function (data) {
             if (data.code == 20000) {
                 clientList = data.data;
-
                 var clientLength = clientList.length;
                 for (var i = 0; i < clientLength; i++){
                     var t = clientList[i].tag;
@@ -152,13 +152,15 @@
                         t = "";
                     }
                     window.tags.push(t);
+                    window.tagMap.push({key: clientList[i].clientKey, value: t});
                 }
                 window.tags = window.tags.distinct();
                 console.log("所有的 tags 去重后:", window.tags);
 
                 var html = template($("#menu-tpl").html(), {
                     list: clientList,
-                    tags:window.tags
+                    tags:window.tags,
+                    tagMap: window.tagMap
                 });
                 $(".layui-side-scroll").html(html);
 
@@ -188,10 +190,9 @@
                 // menu-item-tag
                 $(".menu-item-tag").click(function () {
                     window.tagIndex = $(this).attr("data-index");
-                    console.log("当前tag索引:", window.tagIndex);
+                    window.tagName = $(this).attr("data-tag");
                     load_page("html/client/tag.html");
                 });
-
 
 
             } else {
@@ -238,7 +239,6 @@
         }
     }
 
-
     jQuery.i18n.properties({
         name: 'lang', //资源文件名称
         path: '/i18n/', //资源文件路径
@@ -256,7 +256,6 @@
             });
         }
     });
-
 
 
 </script>
@@ -279,20 +278,16 @@
 
                         <%for(var i = 0; i < tags.length; i++) {%>
                         <dd>
-
                             <% if(tags[i] === ""){ %>
-                            <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>">无标签</a>
+                                <a href="javascript:;" class="menu-item-tag" data-tag="<%:=tags[i]%>" data-index="<%:=i%>">无标签</a>
                             <% } else { %>
-                            <a href="javascript:;" class="menu-item-tag" data-index="<%:=i%>"><%:=tags[i]%></a>
+                                <a href="javascript:;" class="menu-item-tag" data-tag="<%:=tags[i]%>" data-index="<%:=i%>"><%:=tags[i]%></a>
                             <% }%>
-
                         </dd>
                         <%}%>
 
-
                     </dl>
                 </dd>
-
 
             </dl>
         </li>
