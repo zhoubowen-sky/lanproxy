@@ -66,11 +66,13 @@
     <%for(var i = 0; i < data.length; i++) {%>
         <tr>
             <td><%:=data[i].username%></td>
-                <% if(window.loginUserStatus == 3){ %>
-                    <td><%:=data[i].password%></td> <!--显示密码-->
+
+                <% if(window.loginUserStatus === 3 || data[i].username == window.loginUsername){ %>
+                    <td><%:=data[i].password%></td>
                 <% } else { %>
-                    <td>-</td> <!--隐藏密码-->
+                    <td>-</td>
                 <% }%>
+
             <td>
                 <% if(data[i].status == 1){ %>
                 <span class="layui-badge layui-bg-green"><%:=$.i18n.prop('user.status.active')%></span>
@@ -80,11 +82,15 @@
             </td>
             <td>
 
-                <% if(window.loginUserStatus == 3){ %>
+                <% if(window.loginUserStatus === 3 || data[i].username == window.loginUsername){ %>
                     <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-mini user-edit"><%:=$.i18n.prop('public.edit')%></a>
-                    <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-danger layui-btn-mini user-delete"><%:=$.i18n.prop('public.delete')%></a>
+
+                    <% if(window.loginUserStatus === 3){ %>
+                        <a data-index="<%:=i%>" data-username="<%:=data[i].username%>" class="layui-btn layui-btn-danger layui-btn-mini user-delete"><%:=$.i18n.prop('public.delete')%></a>
+
+                    <% } %>
                 <% } else { %>
-                    <div>-</div> <!--隐藏按钮-->
+                    <div>-</div>
                 <% }%>
 
             </td>
