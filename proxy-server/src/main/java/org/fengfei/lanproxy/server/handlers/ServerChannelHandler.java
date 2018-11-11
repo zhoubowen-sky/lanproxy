@@ -30,7 +30,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ProxyMessage proxyMessage) throws Exception {
-        logger.debug("ProxyMessage received {}", JsonUtil.object2json(proxyMessage));
+        logger.debug("ProxyMessage received {} {} {}", proxyMessage.getType(), proxyMessage.getUri(), proxyMessage.getSerialNumber());
         switch (proxyMessage.getType()) {
             case ProxyMessage.TYPE_HEARTBEAT:
                 handleHeartbeatMessage(ctx, proxyMessage);
