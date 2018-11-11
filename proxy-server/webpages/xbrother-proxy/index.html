@@ -161,7 +161,7 @@
                 window.tags = window.tags.distinct();
 
                 var html = template($("#menu-tpl").html(), {
-                    list: clientList.reverse(),
+                    list: clientList,
                     tags:window.tags,
                     tagMap: window.tagMap
                 });

@@ -13,15 +13,13 @@
 		if (data.code == 20000) {
 			clientList = data.data;
 
-            data.data = data.data.reverse();
-
 			var html = template($("#client-tpl").html(), data);
 			$(".main-content").html(html);
 			$(".mapping-config").click(function() {
 		        window.clientIndex = $(this).attr("data-index");
 		        load_page("html/lan/list.html");
 			});
-            $(".client-edit").click(function() {
+			$(".client-edit").click(function() {
                 window.clientIndex = $(this).attr("data-index");
                 load_page("html/client/edit.html");
             });
