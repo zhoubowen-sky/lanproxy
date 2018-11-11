@@ -81,7 +81,6 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         String path = "";
 
         if (ProxyConfig.getInstance().getRunningMode().equals("release")){
-            logger.debug("当前运行模式为 release");
              path = PAGE_FOLDER + uriPath;
         }else {
             path =  ProxyConfig.getInstance().getWebPath() + uriPath;
