@@ -86,7 +86,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         }else {
             path =  ProxyConfig.getInstance().getWebPath() + uriPath;
         }
-        logger.debug("path:{}", path);
+
         File rfile = new File(path);
         if (rfile.isDirectory()) {
             path = path + "/index.html";

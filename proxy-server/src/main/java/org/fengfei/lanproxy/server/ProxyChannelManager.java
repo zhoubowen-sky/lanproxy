@@ -148,8 +148,8 @@ public class ProxyChannelManager {
         if (ports == null) {
             throw new IllegalArgumentException("port can not be null");
         }
-
-        // 客户端（proxy-client）相对较少，这里同步的比较重
+        logger.info("addCmdChannel ports:{}, clientKey: {} ", ports, clientKey);
+        // 客户端（proxy-client）相对较少 这里同步的比较重 但可以接受
         // 保证服务器对外端口与客户端到服务器的连接关系在临界情况时调用removeChannel(Channel channel)时不出问题
         synchronized (portCmdChannelMapping) {
             for (int port : ports) {

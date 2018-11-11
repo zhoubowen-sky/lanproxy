@@ -1,7 +1,9 @@
 package org.fengfei.lanproxy.server.handlers;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.fengfei.lanproxy.common.JsonUtil;
 import org.fengfei.lanproxy.protocol.Constants;
 import org.fengfei.lanproxy.protocol.ProxyMessage;
 import org.fengfei.lanproxy.server.ProxyChannelManager;
@@ -28,7 +30,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ProxyMessage proxyMessage) throws Exception {
-        logger.debug("ProxyMessage received {}", proxyMessage.getType());
+        logger.debug("ProxyMessage received {}", JsonUtil.object2json(proxyMessage));
         switch (proxyMessage.getType()) {
             case ProxyMessage.TYPE_HEARTBEAT:
                 handleHeartbeatMessage(ctx, proxyMessage);
@@ -136,11 +138,11 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
     }
 
     // 处理客户端发来的认证包
+    /*
     private void handleAuthMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         String clientKey = proxyMessage.getUri();
         List<Integer> ports = ProxyConfig.getInstance().getClientInetPorts(clientKey);
         // 本地客户端配置文件中没有此客户端
-        // TODO 此处需要支持客户端自发现
         if (ports == null) {
             logger.info("error clientKey {}, {}", clientKey, ctx.channel());
             ctx.channel().close();
@@ -156,6 +158,55 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
         logger.info("set port => channel, clientKey:{}, ports:{}, ctx.channel:{}", clientKey, ports, ctx.channel());
         ProxyChannelManager.addCmdChannel(ports, clientKey, ctx.channel());
+    }
+    */
+    private void handleAuthMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
+        String clientKey = proxyMessage.getUri();
+        List<Integer> ports = ProxyConfig.getInstance().getClientInetPorts(clientKey);
+        List<ProxyConfig.Client> clients = ProxyConfig.getInstance().getClients();
+        boolean registeredFlag = false;
+        for (int i = 0; i < clients.size(); i++){
+            if (clients.get(i).getClientKey().equals(clientKey)){
+                // 本地配置文件中已包含客户端的clientKey
+                registeredFlag = true;
+                break;
+            }
+        }
+        if (registeredFlag){
+            // 本地客户端配置文件中没有此客户端
+            if (ports == null) {
+                logger.info("error clientKey {}, {}", clientKey, ctx.channel());
+                ctx.channel().close();
+                return;
+            }
+
+            Channel channel = ProxyChannelManager.getCmdChannel(clientKey);
+            if (channel != null) {
+                logger.warn("exist channel for clientKey:{}, channel:{}", clientKey, channel);
+                ctx.channel().close();
+                return;
+            }
+
+            logger.info("set port => channel, clientKey:{}, ports:{}, ctx.channel:{}", clientKey, ports, ctx.channel());
+            ProxyChannelManager.addCmdChannel(ports, clientKey, ctx.channel());
+        }else {
+            // 以下为支持客户端自发现的实现
+            ProxyConfig.Client client = new ProxyConfig.Client();
+            client.setStatus(0);
+            client.setTag("未注册");
+            client.setName(clientKey);
+            client.setClientKey(clientKey);
+            client.setProxyMappings(new ArrayList<ProxyConfig.ClientProxyMapping>());
+
+            List<ProxyConfig.Client> newClients = clients;
+            newClients.add(client);
+
+            String config = JsonUtil.object2json(newClients);
+            logger.info("客户端自发现更新的配置:{}", config);
+            ProxyConfig.getInstance().update(config);
+            ctx.channel().close();
+            return;
+        }
     }
 
     @Override

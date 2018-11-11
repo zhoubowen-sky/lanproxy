@@ -128,11 +128,6 @@ public class ProxyConfig implements Serializable {
      */
     private List<ConfigChangedListener> configChangedListeners = new ArrayList<ConfigChangedListener>();
 
-//    /**
-//     * 用户名与客户端之间的映射关系
-//     */
-//    private volatile Map<String, List<Client>> userClientMapping = new HashMap<String, List<Client>>();
-
     /**
      * 所有用户列表
      */
@@ -276,7 +271,7 @@ public class ProxyConfig implements Serializable {
                 throw new RuntimeException(e);
             }
         }
-        notifyconfigChangedListeners();
+
     }
 
 

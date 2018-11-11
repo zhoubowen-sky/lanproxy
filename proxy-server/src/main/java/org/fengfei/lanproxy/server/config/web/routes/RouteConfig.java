@@ -113,7 +113,7 @@ public class RouteConfig {
                 String config = new String(buf, Charset.forName("UTF-8"));
 
                 List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {});
-
+                logger.info("update config params:{}", config);
 
                 if (clients == null) {
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
