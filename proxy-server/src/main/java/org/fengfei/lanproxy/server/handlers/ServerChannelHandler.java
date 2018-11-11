@@ -173,7 +173,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             }
         }
         if (registeredFlag){
-            // 本地客户端配置文件中没有此客户端
+            // 本地客户端配置文件中有此客户端
             if (ports == null) {
                 logger.info("error clientKey {}, {}", clientKey, ctx.channel());
                 ctx.channel().close();
@@ -190,7 +190,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             logger.info("set port => channel, clientKey:{}, ports:{}, ctx.channel:{}", clientKey, ports, ctx.channel());
             ProxyChannelManager.addCmdChannel(ports, clientKey, ctx.channel());
         }else {
-            // 以下为支持客户端自发现的实现
+            // 以下为支持客户端自发现的实现 本地配置文件中没有此客户端
             ProxyConfig.Client client = new ProxyConfig.Client();
             client.setStatus(0);
             client.setTag("未注册");
