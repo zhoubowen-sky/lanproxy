@@ -254,7 +254,7 @@ public class RouteConfig {
                 user.setStatus(1);
                 List<User> users = ProxyConfig.getInstance().getUsers();
                 // 校验是否已经有此用户
-                Boolean hasTheUser = false;
+                boolean hasTheUser = false;
                 Iterator<User> iterator = users.iterator();
                 while (iterator.hasNext()){
                     User u = iterator.next();
@@ -262,6 +262,11 @@ public class RouteConfig {
                         hasTheUser = true;
                     }
                 }
+                // 超级管理员用户名不允许添加
+                if (user.getUsername().equals(ProxyConfig.getInstance().getConfigAdminUsername())){
+                    hasTheUser = true;
+                }
+
                 if (hasTheUser){
                     logger.warn("用户名与系统已有用户重复，请更换其他用户名");
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名与系统已有用户重复，请更换其他用户名");
