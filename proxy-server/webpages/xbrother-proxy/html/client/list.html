@@ -12,6 +12,9 @@
 	api_invoke("/config/detail", {}, function(data) {
 		if (data.code == 20000) {
 			clientList = data.data;
+
+            data.data = data.data.reverse();
+
 			var html = template($("#client-tpl").html(), data);
 			$(".main-content").html(html);
 			$(".mapping-config").click(function() {
