@@ -157,10 +157,8 @@
                     }else {
                         window.tagMap[t] = 1;
                     }
-
                 }
                 window.tags = window.tags.distinct();
-                console.log("所有的 tags 去重后:", window.tags);
 
                 var html = template($("#menu-tpl").html(), {
                     list: clientList,
