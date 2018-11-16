@@ -57,7 +57,7 @@ public class ProxyConfig implements Serializable {
         // 业务配置信息
         CONFIG_FILE = dataPath + "/config.json";
         // 用户账户配置信息
-        USER_CONFIG_FILE  = dataPath + "/user.json";
+        USER_CONFIG_FILE = dataPath + "/user.json";
         // 客户端分组配置信息
         CLIENT_GROUP_FILE = dataPath + "/group.json";
     }
@@ -111,7 +111,6 @@ public class ProxyConfig implements Serializable {
      * 更新配置后保证在其他线程即时生效
      */
     private static ProxyConfig instance = new ProxyConfig();
-    ;
 
     /**
      * 代理服务器为各个代理客户端（key）开启对应的端口列表（value）
@@ -231,7 +230,7 @@ public class ProxyConfig implements Serializable {
         return clients;
     }
 
-    public List<User> getUsers(){
+    public List<User> getUsers() {
         return users;
     }
 
@@ -252,7 +251,8 @@ public class ProxyConfig implements Serializable {
         }
 
         logger.debug("用户对象转换为JSON数据后:{}", userInfoJson);
-        List<User> users = JsonUtil.json2object(userInfoJson, new TypeToken<List<User>>() {});
+        List<User> users = JsonUtil.json2object(userInfoJson, new TypeToken<List<User>>() {
+        });
         if (users == null) {
             logger.warn("用户配置文件为 null");
             users = new ArrayList<User>();
@@ -291,7 +291,8 @@ public class ProxyConfig implements Serializable {
             throw new RuntimeException(e);
         }
 
-        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {});
+        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {
+        });
 
         if (clients == null) {
             logger.warn("客户端配置文件 clients is null");
@@ -503,7 +504,7 @@ public class ProxyConfig implements Serializable {
     /**
      * 客户端分组类
      */
-    public static class Group implements Serializable{
+    public static class Group implements Serializable {
 
         /**
          * 分组名称
@@ -539,7 +540,7 @@ public class ProxyConfig implements Serializable {
      *
      * @author zhoubowen
      */
-    public static class User implements Serializable{
+    public static class User implements Serializable {
 
         /**
          * 用户名 唯一 字母数字表示 不支持特殊字符
@@ -655,10 +656,11 @@ public class ProxyConfig implements Serializable {
 
     /**
      * 文件对象转换为字符串
+     *
      * @param file 打开的文件句柄
      * @return
      */
-    private String fileToString(File file){
+    private String fileToString(File file) {
         String s = "";
         try {
             InputStream in = new FileInputStream(file);
@@ -671,14 +673,11 @@ public class ProxyConfig implements Serializable {
             in.close();
             s = new String(out.toByteArray(), Charset.forName("UTF-8"));
             return s;
-        }catch (Exception e) {
-            logger.error("打开文件错误:{}",e);
+        } catch (Exception e) {
+            logger.error("打开文件错误:{}", e);
             return s;
         }
     }
-
-
-
 
 
 }
