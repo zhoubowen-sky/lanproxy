@@ -1,9 +1,6 @@
 package org.fengfei.lanproxy.server.metrics;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -57,11 +54,24 @@ public class MetricsCollector {
     public static List<Metrics> getAllMetrics() {
         List<Metrics> allMetrics = new ArrayList<Metrics>();
         Iterator<Entry<Integer, MetricsCollector>> ite = metricsCollectors.entrySet().iterator();
+        List<Integer> ports = new ArrayList<Integer>();
         while (ite.hasNext()) {
-            allMetrics.add(ite.next().getValue().getMetrics());
+            Metrics m = ite.next().getValue().getMetrics();
+            allMetrics.add(m);
+            ports.add(m.getPort());
+        }
+        List<Metrics> newAllMetrics = new ArrayList<Metrics>();
+        Collections.sort(ports);
+        // 按照端口大小排序
+        for (int j = 0; j< ports.size(); j++){
+            for (int i = 0; i < allMetrics.size(); i++){
+                if (allMetrics.get(i).getPort() == ports.get(j)){
+                    newAllMetrics.add(allMetrics.get(i));
+                }
+            }
         }
 
-        return allMetrics;
+        return newAllMetrics;
     }
 
     public Metrics getAndResetMetrics() {
