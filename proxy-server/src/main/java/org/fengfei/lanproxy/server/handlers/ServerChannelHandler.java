@@ -138,28 +138,6 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
     }
 
     // 处理客户端发来的认证包
-    /*
-    private void handleAuthMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
-        String clientKey = proxyMessage.getUri();
-        List<Integer> ports = ProxyConfig.getInstance().getClientInetPorts(clientKey);
-        // 本地客户端配置文件中没有此客户端
-        if (ports == null) {
-            logger.info("error clientKey {}, {}", clientKey, ctx.channel());
-            ctx.channel().close();
-            return;
-        }
-
-        Channel channel = ProxyChannelManager.getCmdChannel(clientKey);
-        if (channel != null) {
-            logger.warn("exist channel for clientKey:{}, channel:{}", clientKey, channel);
-            ctx.channel().close();
-            return;
-        }
-
-        logger.info("set port => channel, clientKey:{}, ports:{}, ctx.channel:{}", clientKey, ports, ctx.channel());
-        ProxyChannelManager.addCmdChannel(ports, clientKey, ctx.channel());
-    }
-    */
     private void handleAuthMessage(ChannelHandlerContext ctx, ProxyMessage proxyMessage) {
         String clientKey = proxyMessage.getUri();
         List<Integer> ports = ProxyConfig.getInstance().getClientInetPorts(clientKey);
@@ -182,6 +160,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
             Channel channel = ProxyChannelManager.getCmdChannel(clientKey);
             if (channel != null) {
+                // 防止 clientKey 相同 后面的把前面的挤掉
                 logger.warn("exist channel for clientKey:{}, channel:{}", clientKey, channel);
                 ctx.channel().close();
                 return;
@@ -189,6 +168,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
             logger.info("set port => channel, clientKey:{}, ports:{}, ctx.channel:{}", clientKey, ports, ctx.channel());
             ProxyChannelManager.addCmdChannel(ports, clientKey, ctx.channel());
+
         }else {
             // 以下为支持客户端自发现的实现 本地配置文件中没有此客户端
             ProxyConfig.Client client = new ProxyConfig.Client();
