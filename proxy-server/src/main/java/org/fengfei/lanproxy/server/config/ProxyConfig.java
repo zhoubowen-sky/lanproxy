@@ -177,7 +177,6 @@ public class ProxyConfig implements Serializable {
         this.runningMode = runningMode;
     }
 
-
     public Integer getServerPort() {
         return this.serverPort;
     }
@@ -561,7 +560,6 @@ public class ProxyConfig implements Serializable {
          * 当前用户所拥有的客户端的权限
          */
         private List<String> clientKeys;
-
 
         public String getUsername() {
             return username;
