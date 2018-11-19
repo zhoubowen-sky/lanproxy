@@ -97,7 +97,6 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
     private void initializeSSLTCPTransport(String host, int port, final SSLContext sslContext) {
         ServerBootstrap b = new ServerBootstrap();
         b.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
-
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();

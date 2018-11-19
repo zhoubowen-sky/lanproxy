@@ -22,9 +22,7 @@ import io.netty.util.AttributeKey;
 
 /**
  * 代理客户端与后端真实服务器连接管理
- *
- * @author fengfei
- *
+ * 一个客户端可以代理很多个端口 每个端口都可以建立映射关系
  */
 public class ClientChannelMannager {
 
@@ -36,23 +34,25 @@ public class ClientChannelMannager {
 
     private static final int MAX_POOL_SIZE = 100;
 
-    private static Map<String, Channel> realServerChannels = new ConcurrentHashMap<String, Channel>();
+    private static Map<String, Channel> realServerChannels = new ConcurrentHashMap<String, Channel>(); // String 为 ProxyMessage 中的 userId 客户端唯一ID
 
-    private static ConcurrentLinkedQueue<Channel> proxyChannelPool = new ConcurrentLinkedQueue<Channel>();
+    private static ConcurrentLinkedQueue<Channel> proxyChannelPool = new ConcurrentLinkedQueue<Channel>(); // 非阻塞式的安全队列
 
     private static volatile Channel cmdChannel;
 
     private static Config config = Config.getInstance();
 
-    public static void borrowProxyChanel(Bootstrap bootstrap, final ProxyChannelBorrowListener borrowListener) {
-        Channel channel = proxyChannelPool.poll();
+    public static void borrowProxyChannel(Bootstrap bootstrap, final ProxyChannelBorrowListener borrowListener) {
+        Channel channel = proxyChannelPool.poll(); // 获取元素 并在队列中清除
         if (channel != null) {
             borrowListener.success(channel);
+            logger.info("proxyChannelPool.poll() success");
             return;
         }
 
+        // 如果队列中没有连接 说明是初始启动状态 因此新增一个连接 此处新增一个 listener
+        // Netty 为异步IO操作 通过重写 operationComplete 方法执行异步IO操作完成后的动作
         bootstrap.connect(config.getStringValue("server.host"), config.getIntValue("server.port")).addListener(new ChannelFutureListener() {
-
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
@@ -65,12 +65,14 @@ public class ClientChannelMannager {
         });
     }
 
-    public static void returnProxyChanel(Channel proxyChanel) {
+    public static void returnProxyChannel(Channel proxyChanel) {
+        // 此处为何作此限制？一个客户端映射的连接超过 100 会怎样？
         if (proxyChannelPool.size() > MAX_POOL_SIZE) {
             proxyChanel.close();
         } else {
             proxyChanel.config().setOption(ChannelOption.AUTO_READ, true);
             proxyChanel.attr(Constants.NEXT_CHANNEL).remove();
+            // 在队列最后插入元素
             proxyChannelPool.offer(proxyChanel);
             logger.debug("return ProxyChanel to the pool, channel is {}, pool size is {} ", proxyChanel, proxyChannelPool.size());
         }

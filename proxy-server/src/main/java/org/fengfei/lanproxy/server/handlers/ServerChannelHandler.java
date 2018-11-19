@@ -20,14 +20,17 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
+ * 处理来自客户端的请求
  *
- * @author fengfei
- *
+ * @author zhoubowen
  */
 public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessage> {
 
     private static Logger logger = LoggerFactory.getLogger(ServerChannelHandler.class);
 
+    /**
+     * 接收到客户端的数据的时候执行
+     */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ProxyMessage proxyMessage) throws Exception {
         logger.debug("ProxyMessage received {} {} {}", proxyMessage.getType(), proxyMessage.getUri(), proxyMessage.getSerialNumber());
@@ -79,7 +82,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
 
         Channel cmdChannel = ProxyChannelManager.getCmdChannel(clientKey);
         if (cmdChannel == null) {
-            logger.warn("ConnectMessage:error cmd channel key {}", ctx.channel().attr(Constants.CLIENT_KEY).get());
+            logger.warn("ConnectMessage :error cmd channel key {}", ctx.channel().attr(Constants.CLIENT_KEY).get());
             return;
         }
 
@@ -142,6 +145,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         String clientKey = proxyMessage.getUri();
         List<Integer> ports = ProxyConfig.getInstance().getClientInetPorts(clientKey);
         List<ProxyConfig.Client> clients = ProxyConfig.getInstance().getClients();
+
         boolean registeredFlag = false;
         for (int i = 0; i < clients.size(); i++){
             if (clients.get(i).getClientKey().equals(clientKey)){
@@ -189,9 +193,13 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         }
     }
 
+    /**
+     * 当一个Channel的可写的状态发生改变的时候执行
+     */
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
         Channel userChannel = ctx.channel().attr(Constants.NEXT_CHANNEL).get();
+
         if (userChannel != null) {
             userChannel.config().setOption(ChannelOption.AUTO_READ, ctx.channel().isWritable());
         }
@@ -199,15 +207,21 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         super.channelWritabilityChanged(ctx);
     }
 
+    /**
+     * 当一个Channel已经处于非激活的状态且不再连接到远程端的时候被调用执行
+     */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         Channel userChannel = ctx.channel().attr(Constants.NEXT_CHANNEL).get();
+
         if (userChannel != null && userChannel.isActive()) {
             String clientKey = ctx.channel().attr(Constants.CLIENT_KEY).get();
             String userId = ctx.channel().attr(Constants.USER_ID).get();
             Channel cmdChannel = ProxyChannelManager.getCmdChannel(clientKey);
+
             if (cmdChannel != null) {
                 ProxyChannelManager.removeUserChannelFromCmdChannel(cmdChannel, userId);
+                logger.info("removed user channel from cmd channel: userId " + userId + "clientKey:" + clientKey);
             } else {
                 logger.warn("null cmdChannel, clientKey is {}", clientKey);
             }
@@ -216,6 +230,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             userChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             userChannel.close();
         } else {
+            // channel 处于非激活状态时直接删除
             ProxyChannelManager.removeCmdChannel(ctx.channel());
         }
 
