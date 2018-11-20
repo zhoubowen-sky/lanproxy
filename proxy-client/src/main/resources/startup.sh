@@ -5,7 +5,7 @@ DEPLOY_DIR=`pwd`
 CONF_DIR=$DEPLOY_DIR/conf
 LOGS_DIR=$DEPLOY_DIR/logs
 
-APP_MAINCLASS=org.fengfei.lanproxy.client.ProxyClientContainer
+APP_MAINCLASS=com.xbrother.lanproxy.client.ProxyClientContainer
 
 PIDS=`ps -ef | grep -v grep | grep "$CONF_DIR" |awk '{print $2}'`
 if [ -n "$PIDS" ]; then

@@ -1,0 +1,65 @@
+package com.xbrother.lanproxy.server.config.web;
+
+import com.xbrother.lanproxy.common.container.Container;
+import com.xbrother.lanproxy.server.config.ProxyConfig;
+import com.xbrother.lanproxy.server.config.web.routes.RouteConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.stream.ChunkedWriteHandler;
+
+public class WebConfigContainer implements Container {
+
+    private static Logger logger = LoggerFactory.getLogger(WebConfigContainer.class);
+
+    private NioEventLoopGroup serverWorkerGroup;
+
+    private NioEventLoopGroup serverBossGroup;
+
+    public WebConfigContainer() {
+        // 配置管理 不会有大批量的更新配置的场景 使用单线程处理网络事件
+        serverBossGroup = new NioEventLoopGroup(1);
+        serverWorkerGroup = new NioEventLoopGroup(1);
+    }
+
+    @Override
+    public void start() {
+        ServerBootstrap httpServerBootstrap = new ServerBootstrap();
+        httpServerBootstrap.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel ch) throws Exception {
+                        ChannelPipeline pipeline = ch.pipeline();
+                        pipeline.addLast(new HttpServerCodec());
+                        pipeline.addLast(new HttpObjectAggregator(64 * 1024));
+                        pipeline.addLast(new ChunkedWriteHandler());
+                        pipeline.addLast(new HttpRequestHandler());
+                    }
+                });
+        try {
+            httpServerBootstrap.bind(ProxyConfig.getInstance().getConfigServerBind(), ProxyConfig.getInstance().getConfigServerPort()).get();
+            logger.info("http server start on port " + ProxyConfig.getInstance().getConfigServerPort());
+
+        } catch (Exception ex) {
+            logger.error("启动 http 服务出错:" + ex.getMessage());
+            throw new RuntimeException(ex);
+        }
+
+        // 注册路由
+        RouteConfig.init();
+    }
+
+    @Override
+    public void stop() {
+        serverBossGroup.shutdownGracefully();
+        serverWorkerGroup.shutdownGracefully();
+    }
+
+}

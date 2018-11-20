@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.fengfei</groupId>
+        <groupId>com.xbrother</groupId>
         <artifactId>lanproxy</artifactId>
         <version>0.1</version>
     </parent>
@@ -12,12 +12,12 @@
     <url>http://maven.apache.org</url>
     <dependencies>
         <dependency>
-            <groupId>org.fengfei</groupId>
+            <groupId>com.xbrother</groupId>
             <artifactId>proxy-common</artifactId>
             <version>0.1</version>
         </dependency>
         <dependency>
-            <groupId>org.fengfei</groupId>
+            <groupId>com.xbrother</groupId>
             <artifactId>proxy-protocol</artifactId>
             <version>0.1</version>
         </dependency>
