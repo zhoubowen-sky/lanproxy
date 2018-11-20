@@ -90,9 +90,15 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         if (userChannel != null) {
             // 数据发送完成后再关闭连接，解决http1.0数据传输问题
             userChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+            /*
             ctx.channel().attr(Constants.NEXT_CHANNEL).remove();
             ctx.channel().attr(Constants.CLIENT_KEY).remove();
             ctx.channel().attr(Constants.USER_ID).remove();
+            */
+
+            ctx.channel().attr(Constants.NEXT_CHANNEL).set(null);
+            ctx.channel().attr(Constants.CLIENT_KEY).set(null);
+            ctx.channel().attr(Constants.USER_ID).set(null);
         }
     }
 
@@ -108,7 +114,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         String[] tokens = uri.split("@");
         if (tokens.length != 2) {
             ctx.channel().close();
-            logger.warn("ConnectMessage: error uri");
+            logger.warn("ConnectMessage: error uri :", tokens.toString());
             return;
         }
         logger.info("客户端传来的 Token: {}", tokens.toString());

@@ -78,7 +78,10 @@ public class ClientChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         logger.debug("handleDisconnectMessage, {}", realServerChannel);
         if (realServerChannel != null) {
             // 移除与此控制连接绑定的数据连接
+            /*
             ctx.channel().attr(Constants.NEXT_CHANNEL).remove();
+            */
+            ctx.channel().attr(Constants.NEXT_CHANNEL).set(null);
             // 删除绑定关系并添加到队列中
             ClientChannelMannager.returnProxyChannel(ctx.channel());
             realServerChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);

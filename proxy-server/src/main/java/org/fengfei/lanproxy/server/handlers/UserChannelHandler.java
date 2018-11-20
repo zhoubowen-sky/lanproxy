@@ -98,9 +98,16 @@ public class UserChannelHandler extends SimpleChannelInboundHandler<ByteBuf> {
             Channel proxyChannel = userChannel.attr(Constants.NEXT_CHANNEL).get();
 
             if (proxyChannel != null && proxyChannel.isActive()) {
+                /*
                 proxyChannel.attr(Constants.NEXT_CHANNEL).remove();
                 proxyChannel.attr(Constants.CLIENT_KEY).remove();
                 proxyChannel.attr(Constants.USER_ID).remove();
+                */
+
+                proxyChannel.attr(Constants.NEXT_CHANNEL).set(null);
+                proxyChannel.attr(Constants.CLIENT_KEY).set(null);
+                proxyChannel.attr(Constants.USER_ID).set(null);
+
 
                 proxyChannel.config().setOption(ChannelOption.AUTO_READ, true);
                 // 通知客户端，用户连接已经断开
