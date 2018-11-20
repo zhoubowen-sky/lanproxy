@@ -3,6 +3,8 @@ package org.fengfei.lanproxy.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProxyMessageEncoder extends MessageToByteEncoder<ProxyMessage> {
 
@@ -11,6 +13,8 @@ public class ProxyMessageEncoder extends MessageToByteEncoder<ProxyMessage> {
     private static final int SERIAL_NUMBER_SIZE = 8;
 
     private static final int URI_LENGTH_SIZE = 1;
+
+    private static Logger logger = LoggerFactory.getLogger(ProxyMessageEncoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ProxyMessage msg, ByteBuf out) throws Exception {
@@ -22,6 +26,14 @@ public class ProxyMessageEncoder extends MessageToByteEncoder<ProxyMessage> {
             uriBytes = msg.getUri().getBytes();
             bodyLength += uriBytes.length;
         }
+
+        // 处理 msg data  压缩问题
+//        byte[] oldMsgData = msg.getData();
+//        byte[] newMsgData = Compress.gzipCompress(oldMsgData);
+//        byte[] newMsgData = Compress.zlibCompress(oldMsgData);
+//        msg.setData(newMsgData);
+//        logger.debug("oldMsgData length: " + oldMsgData.length+ oldMsgData.toString() + ", newMsgData length: " +  newMsgData.length + newMsgData.toString());
+
 
         if (msg.getData() != null) {
             bodyLength += msg.getData().length;

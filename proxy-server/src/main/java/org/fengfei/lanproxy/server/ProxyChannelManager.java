@@ -39,7 +39,6 @@ public class ProxyChannelManager {
 
     private static Map<Integer, Channel> portCmdChannelMapping = new ConcurrentHashMap<Integer, Channel>();
 
-    // 支持并发安全的 Map ConcurrentHashMap
     private static Map<String, Channel> cmdChannels = new ConcurrentHashMap<String, Channel>();
 
     static {
@@ -54,7 +53,7 @@ public class ProxyChannelManager {
                     Channel proxyChannel = ite.next().getValue();
                     String clientKey = proxyChannel.attr(CHANNEL_CLIENT_KEY).get();
 
-                    // 去除已经去掉的clientKey配置
+                    // 去除已经去掉的clientKey配置 client 删除时 channel 同样删除
                     Set<String> clientKeySet = ProxyConfig.getInstance().getClientKeySet();
                     if (!clientKeySet.contains(clientKey)) {
                         removeCmdChannel(proxyChannel);
@@ -160,6 +159,7 @@ public class ProxyChannelManager {
         channel.attr(CHANNEL_PORT).set(ports);
         channel.attr(CHANNEL_CLIENT_KEY).set(clientKey);
         channel.attr(USER_CHANNELS).set(new ConcurrentHashMap<String, Channel>());
+
         cmdChannels.put(clientKey, channel);
     }
 
@@ -188,7 +188,7 @@ public class ProxyChannelManager {
                 continue;
             }
 
-            // 在执行断连之前新的连接已经连上来了
+            // 在执行断连之前新的连接已经连上来了 简直优秀
             if (proxyChannel != channel) {
                 portCmdChannelMapping.put(port, proxyChannel);
             }

@@ -33,15 +33,15 @@ public class ProxyClientContainer implements Container, ChannelStatusListener {
 
     private static Logger logger = LoggerFactory.getLogger(ProxyClientContainer.class);
 
-    private static final int MAX_FRAME_LENGTH = 1024 * 1024;
+    private static final int MAX_FRAME_LENGTH = 1024 * 1024; // 单包最大长度
 
-    private static final int LENGTH_FIELD_OFFSET = 0;
+    private static final int LENGTH_FIELD_OFFSET = 0; // 数据长度字段开始的偏移量 因为可能有固定的包头
 
-    private static final int LENGTH_FIELD_LENGTH = 4;
+    private static final int LENGTH_FIELD_LENGTH = 4; // 数据长度字段所占的字节数
 
-    private static final int INITIAL_BYTES_TO_STRIP = 0;
+    private static final int INITIAL_BYTES_TO_STRIP = 0; // 表示从整个包的第一个字节开始向后忽略的字节数 如有固定包头 可设置忽略固定包头的长度 也可不设置
 
-    private static final int LENGTH_ADJUSTMENT = 0;
+    private static final int LENGTH_ADJUSTMENT = 0; // 添加到数据长度字段的补偿值
 
     private NioEventLoopGroup workerGroup;
 
@@ -56,12 +56,13 @@ public class ProxyClientContainer implements Container, ChannelStatusListener {
     private long sleepTimeMill = 1000;
 
     public ProxyClientContainer() {
+
+        // 初始化用于连接及处理IO操作线程组
         workerGroup = new NioEventLoopGroup();
         realServerBootstrap = new Bootstrap();
         realServerBootstrap.group(workerGroup);
         realServerBootstrap.channel(NioSocketChannel.class);
         realServerBootstrap.handler(new ChannelInitializer<SocketChannel>() {
-
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast(new RealServerChannelHandler());
@@ -72,7 +73,6 @@ public class ProxyClientContainer implements Container, ChannelStatusListener {
         bootstrap.group(workerGroup);
         bootstrap.channel(NioSocketChannel.class);
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
                 if (Config.getInstance().getBooleanValue("ssl.enable", false)) {
@@ -82,12 +82,14 @@ public class ProxyClientContainer implements Container, ChannelStatusListener {
 
                     ch.pipeline().addLast(createSslHandler(sslContext));
                 }
+
                 ch.pipeline().addLast(new ProxyMessageDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP));
                 ch.pipeline().addLast(new ProxyMessageEncoder());
                 ch.pipeline().addLast(new IdleCheckHandler(IdleCheckHandler.READ_IDLE_TIME, IdleCheckHandler.WRITE_IDLE_TIME - 10, 0));
                 ch.pipeline().addLast(new ClientChannelHandler(realServerBootstrap, bootstrap, ProxyClientContainer.this));
             }
         });
+
     }
 
     @Override
@@ -104,16 +106,15 @@ public class ProxyClientContainer implements Container, ChannelStatusListener {
     private void connectProxyServer() {
 
         bootstrap.connect(config.getStringValue("server.host"), config.getIntValue("server.port")).addListener(new ChannelFutureListener() {
-
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-
                     // 连接成功，向服务器发送客户端认证信息（clientKey）
                     ClientChannelMannager.setCmdChannel(future.channel());
                     ProxyMessage proxyMessage = new ProxyMessage();
                     proxyMessage.setType(ProxyMessage.C_TYPE_AUTH);
                     proxyMessage.setUri(config.getStringValue("client.key"));
+
                     future.channel().writeAndFlush(proxyMessage);
                     sleepTimeMill = 1000;
                     logger.info("connect proxy server success, {}", future.channel());

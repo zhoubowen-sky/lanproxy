@@ -36,7 +36,16 @@ fi
 JAVA_MEM_OPTS=""
 #JAVA_MEM_OPTS="-server -Xms5120M -Xmx5120M -Xmn1024M -Xnoclassgc -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -Xloggc:$CLOG_FILE"
 echo -e "Starting the proxy server ...\c"
+
+if [ "$1" = "debug" ]; then
+
+    java -Dapp.home=$DEPLOY_DIR $JAVA_OPTS $JAVA_MEM_OPTS $JAVA_DEBUG_OPTS $JAVA_JMX_OPTS -classpath $CONF_DIR:$LIB_JARS $APP_MAINCLASS
+
+else
+
 nohup java -Dapp.home=$DEPLOY_DIR $JAVA_OPTS $JAVA_MEM_OPTS $JAVA_DEBUG_OPTS $JAVA_JMX_OPTS -classpath $CONF_DIR:$LIB_JARS $APP_MAINCLASS >$STDOUT_FILE 2>&1 &
+
+fi
 sleep 1
 echo "started"
 PIDS=`ps -ef | grep java | grep "$DEPLOY_DIR" | awk '{print $2}'`
