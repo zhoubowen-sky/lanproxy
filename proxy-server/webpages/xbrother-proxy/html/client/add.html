@@ -16,7 +16,7 @@
         <div class="layui-input-inline">
           <input type="text" name="clientKey" autocomplete="off" placeholder="" class="layui-input">
         </div>
-        <div ><a class="layui-btn layui-btn-mini random-key random"></a></div>
+        <!--<div ><a class="layui-btn layui-btn-mini random-key random"></a></div>-->
       </div>
 
 
@@ -46,11 +46,12 @@ $(".i18n-client-tag").html($.i18n.prop('client.tag'));
 $("input[name='name']").attr("placeholder", $.i18n.prop('client.name.placeholder'));
 $("input[name='clientKey']").attr("placeholder", $.i18n.prop('client.key.placeholder'));
 $("input[name='tag']").attr("placeholder", $.i18n.prop('client.tag.placeholder'));
-$(".random").html($.i18n.prop('client.randomkey'));
+// $(".random").html($.i18n.prop('client.randomkey'));
 $(".add").html($.i18n.prop('public.submit'));
-$(".random").click(function(){
-	$("input[name='clientKey']").val(uuid());
-});
+
+// $(".random").click(function(){
+// 	$("input[name='clientKey']").val(uuid());
+// });
 
 $(".add").click(function(){
     var name = $("input[name='name']").val();
@@ -90,19 +91,19 @@ $(".back").click(function(){
 	load_page("html/client/list.html");
 });
 
-function uuid() {
-	var s = [];
-	var hexDigits = "0123456789abcdef";
-	for (var i = 0; i < 36; i++) {
-	  s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-	}
-	s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
-	s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
-	s[8] = s[13] = s[18] = s[23] = "";
-	
-	var uuid = s.join("");
-	return uuid;
-}
+// function uuid() {
+// 	var s = [];
+// 	var hexDigits = "0123456789abcdef";
+// 	for (var i = 0; i < 36; i++) {
+// 	  s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+// 	}
+// 	s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+// 	s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+// 	s[8] = s[13] = s[18] = s[23] = "";
+//
+// 	var uuid = s.join("");
+// 	return uuid;
+// }
 
 
 
