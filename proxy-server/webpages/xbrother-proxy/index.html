@@ -178,12 +178,20 @@
 
                 $(".client-config").html($.i18n.prop('menu.client.config'));
 
+                // 数据统计
                 $(".statistics").html($.i18n.prop('menu.client.statistics'));
+
+                // 使用帮助
                 $(".help").html($.i18n.prop('menu.client.help'));
 
                 $(".user-list").html($.i18n.prop('menu.user.list'));
                 $(".user-list-sub").html($.i18n.prop('menu.user.list'));
                 $(".user-add").html($.i18n.prop('menu.user.add'));
+
+                // 端口管理 port-manage
+                $(".port-manage").html($.i18n.prop('menu.port.manage'));
+                // 端口列表 port-manage-list
+                $(".port-manage-list").html($.i18n.prop('menu.port.list'));
 
 
                 $(".menu-item").click(function () {
@@ -297,6 +305,7 @@
         </li>
 
 
+        <!--配置管理-->
         <li class="layui-nav-item">
             <a class="client-config" href="javascript:;"></a>
             <dl class="layui-nav-child">
@@ -309,6 +318,7 @@
         </li>
 
 
+        <!--用户管理-->
         <li class="layui-nav-item"><a class="user-list" href="javascript:;"></a>
             <dl class="layui-nav-child">
                 <dd>
@@ -321,11 +331,23 @@
             </dl>
         </li>
 
+        <!--端口管理-->
+        <li class="layui-nav-item"><a class="port-manage" href="javascript:;"></a>
+            <dl class="layui-nav-child">
+                <dd>
+                    <a href="javascript:load_page('html/port/list.html');" class="port-manage-list"></a>
+                </dd>
 
+            </dl>
+        </li>
+
+        <!--数据统计-->
         <li class="layui-nav-item layui-nav-itemed">
             <a class="statistics" href="javascript:load_page('html/statistics/list.html');"></a>
         </li>
 
+
+        <!--使用帮助-->
         <li class="layui-nav-item layui-nav-itemed">
             <a class="help" href="javascript:load_page('html/help/help.html');"></a>
         </li>
