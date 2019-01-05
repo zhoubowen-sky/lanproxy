@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.*;
 import com.xbrother.lanproxy.common.Config;
 import com.xbrother.lanproxy.common.JsonUtil;
 import org.slf4j.Logger;
@@ -262,7 +263,14 @@ public class ProxyConfig implements Serializable {
         if (userInfoJson != null) {
             try {
                 FileOutputStream out = new FileOutputStream(file);
-                out.write(userInfoJson.getBytes(Charset.forName("UTF-8")));
+
+                JsonParser jsonParser = new JsonParser();
+                JsonArray jsonArray = jsonParser.parse(userInfoJson).getAsJsonArray();
+
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String prettyJson = gson.toJson(jsonArray);
+
+                out.write(prettyJson.getBytes(Charset.forName("UTF-8")));
                 out.flush();
                 out.close();
             } catch (Exception e) {
@@ -290,8 +298,7 @@ public class ProxyConfig implements Serializable {
             throw new RuntimeException(e);
         }
 
-        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {
-        });
+        List<Client> clients = JsonUtil.json2object(proxyMappingConfigJson, new TypeToken<List<Client>>() {});
 
         if (clients == null) {
             logger.warn("客户端配置文件 clients is null");
@@ -336,7 +343,14 @@ public class ProxyConfig implements Serializable {
         if (proxyMappingConfigJson != null) {
             try {
                 FileOutputStream out = new FileOutputStream(file);
-                out.write(proxyMappingConfigJson.getBytes(Charset.forName("UTF-8")));
+
+                JsonParser jsonParser = new JsonParser();
+                JsonArray jsonArray = jsonParser.parse(proxyMappingConfigJson).getAsJsonArray();
+
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String prettyJson = gson.toJson(jsonArray);
+
+                out.write(prettyJson.getBytes(Charset.forName("UTF-8")));
                 out.flush();
                 out.close();
             } catch (Exception e) {
@@ -452,6 +466,7 @@ public class ProxyConfig implements Serializable {
          * 客户端当前的连接状态 1 为在线 0 为离线
          */
         private int status;
+
         /**
          * 客户端的 tag 标签 用以分组展示
          */
@@ -499,39 +514,6 @@ public class ProxyConfig implements Serializable {
 
     }
 
-    /**
-     * 客户端分组类
-     */
-    public static class Group implements Serializable {
-
-        /**
-         * 分组名称
-         */
-        private String groupName;
-
-        /**
-         * 该分组下的客户端列表
-         */
-        private List<String> clientKeys;
-
-        public String getGroupName() {
-            return groupName;
-        }
-
-        public void setGroupName(String groupName) {
-            this.groupName = groupName;
-        }
-
-        public List<String> getClientKeys() {
-            return clientKeys;
-        }
-
-        public void setClientKeys(List<String> clientKeys) {
-            this.clientKeys = clientKeys;
-        }
-
-
-    }
 
     /**
      * 用户信息的描述
@@ -600,19 +582,32 @@ public class ProxyConfig implements Serializable {
     public static class ClientProxyMapping {
 
         /**
-         * 代理服务器端口
+         * 代理服务器端口 即公网端口
          */
         private Integer inetPort;
 
         /**
-         * 需要代理的网络信息（代理客户端能够访问）格式 192.168.1.99:80 (必须带端口)
+         * 被代理的网络信息（代理客户端能够访问）格式 192.168.1.99:80 (必须带端口)
          */
         private String lan;
 
         /**
-         * 备注名称
+         * 本代理的备注名称
          */
         private String name;
+
+        /**
+         * 代理的启用状态 0 禁用 1 启用
+         */
+        private int status;
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
 
         public Integer getInetPort() {
             return inetPort;
