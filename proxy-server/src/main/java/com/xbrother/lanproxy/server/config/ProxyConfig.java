@@ -581,6 +581,10 @@ public class ProxyConfig implements Serializable {
      */
     public static class ClientProxyMapping {
 
+        public ClientProxyMapping(){
+            this.status = 1; // 默认启用
+        }
+
         /**
          * 代理服务器端口 即公网端口
          */
@@ -597,7 +601,7 @@ public class ProxyConfig implements Serializable {
         private String name;
 
         /**
-         * 代理的启用状态 0 禁用 1 启用
+         * 代理端口的启用状态 0 禁用 1 启用
          */
         private int status;
 
