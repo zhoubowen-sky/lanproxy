@@ -26,7 +26,7 @@
             <td><%:=data[i].lan%></td>
             <!--代理状态 0 禁用 1 启用-->
 
-            <% if(data[i].status == 1){ %>
+            <% if(data[i].status == "1"){ %>
                 <td><span class="layui-badge layui-bg-green"><%:=$.i18n.prop('lan.status.open')%></span></td>
             <% } else { %>
                 <td><span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('lan.status.close')%></span></td>
@@ -70,10 +70,12 @@
 		window.clientIndex = $(this).attr("data-index");
 		load_page("html/lan/list.html");
 	});
+
 	$(".mapping-edit").click(function() {
 		window.mappingIndex = $(this).attr("data-index");
 		load_page("html/lan/edit.html");
 	});
+
 	$(".mapping-delete").click(function() {
 		var mappingIndex = $(this).attr("data-index");
 		layer.confirm($.i18n.prop('public.confirm.delete'), {

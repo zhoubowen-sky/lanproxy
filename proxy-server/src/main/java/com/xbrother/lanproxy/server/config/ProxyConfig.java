@@ -323,6 +323,11 @@ public class ProxyConfig implements Serializable {
             clientInetPortMapping.put(clientKey, ports);
 
             for (ClientProxyMapping mapping : mappings) {
+                // 将处于禁用状态的代理跳过
+                if (!mapping.getStatus().equals("1")){
+                    logger.warn("端口状态:" + mapping.getStatus() + "端口未启用，直接跳过，端口:" + mapping.getInetPort());
+                    continue;
+                }
                 Integer port = mapping.getInetPort();
                 ports.add(port);
                 if (inetPortLanInfoMapping.containsKey(port)) {
@@ -428,6 +433,7 @@ public class ProxyConfig implements Serializable {
     public List<Integer> getUserPorts() {
         List<Integer> ports = new ArrayList<Integer>();
         Iterator<Integer> ite = inetPortLanInfoMapping.keySet().iterator();
+        // 此处需要判断 代理启用状态 只有启用的端口才允许绑定
         while (ite.hasNext()) {
             ports.add(ite.next());
         }
@@ -581,9 +587,9 @@ public class ProxyConfig implements Serializable {
      */
     public static class ClientProxyMapping {
 
-        public ClientProxyMapping(){
-            this.status = 1; // 默认启用
-        }
+//        public ClientProxyMapping(){
+//            this.status = "1"; // 默认启用
+//        }
 
         /**
          * 代理服务器端口 即公网端口
@@ -603,15 +609,16 @@ public class ProxyConfig implements Serializable {
         /**
          * 代理端口的启用状态 0 禁用 1 启用
          */
-        private int status;
+        private String status;
 
-        public int getStatus() {
+        public String getStatus() {
             return status;
         }
 
-        public void setStatus(int status) {
+        public void setStatus(String status) {
             this.status = status;
         }
+
 
         public Integer getInetPort() {
             return inetPort;
