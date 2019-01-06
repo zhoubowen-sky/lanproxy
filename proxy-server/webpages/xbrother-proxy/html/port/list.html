@@ -1,0 +1,142 @@
+<div class="layui-tab layui-tab-brief">
+	<ul class="layui-tab-title site-demo-title">
+		<li class="layui-this detail-page"></li>
+	</ul>
+	<div class="main-content"></div>
+</div>
+
+
+<script>
+    $(".layui-this.detail-page").html($.i18n.prop('menu.port.list'));
+	window.clientList = [];
+	api_invoke("/config/detail", {}, function(data) {
+
+	    // {"code":20000,"message":"success","data":[{"name":"1","clientKey":"2","proxyMappings":[
+        // {"inetPort":10000,"lan":"127.0.0.1:8090","name":"e","status":"1"},
+        // {"inetPort":1112,"lan":"127.0.0.1:2","name":"w","status":"1"},
+        // {"inetPort":4443,"lan":"127.0.0.1:77","name":"44","status":"0"}],"status":0,"tag":"啊啊"},{"name":"zbw","clientKey":"zbw","proxyMappings":[
+        // {"inetPort":20000,"lan":"127.0.0.1:8090","name":"HTTP","status":"1"},
+        // {"inetPort":20002,"lan":"127.0.0.1:8090","name":"HTTP2","status":"1"},{"inetPort":20001,"lan":"127.0.0.1:8090","name":"HTTP3","status":"1"},
+        // {"inetPort":20003,"lan":"127.0.0.1:8090","name":"3","status":"0"}],"status":1,"tag":"未注册"}]}
+
+		if (data.code == 20000) {
+			clientList = data.data;
+
+			var html = template($("#client-tpl").html(), data);
+			$(".main-content").html(html);
+			$(".lan-status-open").click(function() {
+                window.clientIndex = $(this).attr("data-index");
+                window.clientIndex2 = $(this).attr("data-index2");
+                console.log("当前序号:", window.clientIndex, window.clientIndex2);
+                console.log(clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["inetPort"]);
+                if (clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] == "1") {
+                    // 不需要更新
+                    layer.alert($.i18n.prop('lan.status.isopen'));
+                }else {
+                    // 修改状态
+                    clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] = "1";
+                    api_invoke("/config/update", clientList, function(data) {
+                        if (data.code != 20000) {
+                            layer.alert(data.message);
+                        } else {
+                            // 刷新页面
+                            load_page("html/port/list.html");
+                        }
+                    });
+                }
+
+            });
+
+			$(".lan-status-close").click(function() {
+				window.clientIndex = $(this).attr("data-index");
+                window.clientIndex2 = $(this).attr("data-index2");
+                console.log("当前序号:", window.clientIndex, window.clientIndex2);
+                console.log(clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["inetPort"]);
+                if (clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] == "0") {
+                    // 不需要更新
+                    layer.alert($.i18n.prop('lan.status.isclose'));
+                }else {
+                    // 修改状态
+                    clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] = "0";
+                    api_invoke("/config/update", clientList, function(data) {
+                        if (data.code != 20000) {
+                            layer.alert(data.message);
+                        } else {
+                            // 刷新页面
+                            load_page("html/port/list.html");
+                        }
+                    });
+                }
+
+
+
+			});
+		} else {
+			alert(data.message);
+		}
+	});
+
+</script>
+
+<script id="client-tpl" type="text/html">
+<table class="layui-table" lay-skin="line">
+    <thead>
+        <tr>
+            <th class="th-client-name"><%:=$.i18n.prop('client.name')%></th>
+            <th class="th-client-key"><%:=$.i18n.prop('client.key')%></th>
+            <th class="th-status"><%:=$.i18n.prop('client.status')%></th>
+            <th class="th-client-tag"><%:=$.i18n.prop('client.tag')%></th>
+
+            <!--代理公网端口-->
+            <th class="th-client-tag"><%:=$.i18n.prop('lan.inetport')%></th>
+            <!--代理状态-->
+            <th class="th-client-tag"><%:=$.i18n.prop('lan.status')%></th>
+
+            <th class="th-options"><%:=$.i18n.prop('public.options')%></th>
+        </tr>
+    </thead>
+    <tbody>
+    <%for(var i = 0; i < data.length; i++) {%>
+        <!--每个配置了代理的客户端都有一行资料展示-->
+        <%for(var j = 0; j < data[i].proxyMappings.length; j++) {%>
+
+            <tr>
+                <td><%:=data[i].name%></td>
+                <td><%:=data[i].clientKey%></td>
+
+                <td>
+                    <% if(data[i].status == 1){ %>
+                    <span class="layui-badge layui-bg-green"><%:=$.i18n.prop('client.status.online')%></span>
+                    <% } else { %>
+                    <span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('client.status.offline')%></span>
+                    <% }%>
+                </td>
+
+                <td>
+                    <span class="layui-badge layui-bg-gray"><%:=data[i].tag%></span>
+                </td>
+
+                <!-- ------------------------------- -->
+                <td>
+                    <span><%:=data[i].proxyMappings[j].inetPort%></span>
+                </td>
+
+                <td>
+                    <% if(data[i].proxyMappings[j].status == "1"){ %>
+                        <span class="layui-badge layui-bg-green"><%:=$.i18n.prop('lan.status.open')%></span>
+                    <% } else { %>
+                        <span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('lan.status.close')%></span>
+                    <% }%>
+                </td>
+                <!-- ------------------------------- -->
+
+                <td>
+                    <a data-index="<%:=i%>" data-index2="<%:=j%>" class="layui-btn layui-btn-mini lan-status-open"><%:=$.i18n.prop('lan.status.open')%></a>
+                    <a data-index="<%:=i%>" data-index2="<%:=j%>" class="layui-btn layui-btn-danger layui-btn-mini lan-status-close"><%:=$.i18n.prop('lan.status.close')%></a>
+                </td>
+            </tr>
+        <%}%>
+    <%}%>
+    </tbody>
+</table>
+</script>

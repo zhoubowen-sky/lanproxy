@@ -21,29 +21,56 @@
           <input type="text" name="lan" autocomplete="off" placeholder="" class="layui-input">
         </div>
       </div>
+
+        <!--代理状态-->
+        <div class="layui-form-item">
+            <label class="layui-form-label i18n-lan-status"></label>
+            <div class="ayui-input-block layui-form-radio">
+                <span>  启用  </span>  <input type="radio" name="status" value='1' title="启用">
+                <span>  禁用  </span>  <input type="radio" name="status" value='0' title="禁用">
+            </div>
+        </div>
+
+
        <div class="layui-form-item">
 	    <div class="layui-input-block">
 	      <button class="layui-btn update"></button>
 	      <button class="layui-btn layui-btn-primary back"></button>
 	    </div>
 	  </div>
+
     </div>
 </div>
 <script>
 $(function(){
 	$("input[name='name']").val(clientList[clientIndex].proxyMappings[mappingIndex].name);
 	$("input[name='inetPort']").val(clientList[clientIndex].proxyMappings[mappingIndex].inetPort);
-	$("input[name='lan']").val(clientList[clientIndex].proxyMappings[mappingIndex].lan);
+    $("input[name='lan']").val(clientList[clientIndex].proxyMappings[mappingIndex].lan);
+	// 编辑配置
 	$(".i18n-lan-title").html($.i18n.prop('lan.editconfig'));
+	// 代理名称
 	$(".i18n-lan-name").html($.i18n.prop('lan.name'));
+	// 公网端口
 	$(".i18n-lan-inetport").html($.i18n.prop('lan.inetport'));
+	// 客户端网络
 	$(".i18n-lan-ip").html($.i18n.prop('lan.ip'));
+	// 代理状态 TODO 0 禁用 1 启用
+    $(".i18n-lan-status").html($.i18n.prop('lan.status'));
+
+
 	$("input[name='inetPort']").attr("placeholder", $.i18n.prop('lan.inetport.placeholder'));
     $("input[name='lan']").attr("placeholder", $.i18n.prop('lan.ip.placeholder'));
     $("input[name='name']").attr("placeholder", $.i18n.prop('lan.name.placeholder'));
+    console.log(clientList[clientIndex].proxyMappings[mappingIndex].status);
+
+    $("input[name='status'][value='1']").attr("checked", clientList[clientIndex].proxyMappings[mappingIndex].status == "1" ? true : false);
+    $("input[name='status'][value='0']").attr("checked", clientList[clientIndex].proxyMappings[mappingIndex].status == "0" ? true : false);
+
+
 	$(".update").html($.i18n.prop('public.submit'));
 	$(".back").html($.i18n.prop('public.back'));
 });
+
 $(".update").click(function(){
     var name = $("input[name='name']").val();
     if(name == ""){
@@ -69,11 +96,19 @@ $(".update").click(function(){
     	layer.alert($.i18n.prop('lan.notice.errorlan'), {title:"Tips"});
         return;
     }
+    // TODO 代理状态
+    var status = $("input[name='status']:checked").val();
+    console.log("代理状态:", status);
+    if (status == "" || status === undefined){
+        layer.alert($.i18n.prop('lan.notice.status'), {title:$.i18n.prop('public.tips')});
+        return;
+    }
 
     clientList[clientIndex].proxyMappings[mappingIndex]= {
     	name:name,
-    	inetPort:inetPort,
-    	lan:lan
+    	inetPort:parseInt(inetPort),
+    	lan:lan,
+        status: status
     };
 
     api_invoke("/config/update", clientList, function(data) {

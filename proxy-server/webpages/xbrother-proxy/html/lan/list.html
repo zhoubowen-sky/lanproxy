@@ -4,7 +4,8 @@
 	</ul>
 	<div class="main-content"></div>
 	<div class="layui-input-block" style="float: left; margin-left: 15px;">
-		<button class="layui-btn mapping-add"></button>
+        <button class="layui-btn mapping-add"></button>
+        <!--<button class="layui-btn layui-btn-primary  mapping-return"></button>-->
 	</div>
 </div>
 <script id="mapping-tpl" type="text/html">
@@ -14,6 +15,7 @@
             <th class="i18n-lan-name"></th>
             <th class="i18n-lan-inetport"></th>
             <th class="i18n-lan-ip"></th>
+            <th class="i18n-lan-status"></th>
             <th class="i18n-lan-options"></th>
         </tr>
     </thead>
@@ -23,6 +25,15 @@
             <td><%:=data[i].name%></td>
             <td><%:=data[i].inetPort%></td>
             <td><%:=data[i].lan%></td>
+            <!--代理状态 0 禁用 1 启用-->
+
+            <% if(data[i].status == "1"){ %>
+                <td><span class="layui-badge layui-bg-green"><%:=$.i18n.prop('lan.status.open')%></span></td>
+            <% } else { %>
+                <td><span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('lan.status.close')%></span></td>
+            <% }%>
+
+
             <td>
               <a data-index="<%:=i%>" class="layui-btn layui-btn-mini mapping-edit"></a>
               <a data-index="<%:=i%>" class="layui-btn layui-btn-danger layui-btn-mini mapping-delete"></a>
@@ -34,25 +45,41 @@
 </script>
 <script>
     $(".tab-title").html(clientList[clientIndex].name + " - " + $.i18n.prop('lan.proxyconfig'));
+
     $(".mapping-add").html($.i18n.prop('lan.addnewconfig'));
+    // $(".mapping-return").html($.i18n.prop('public.back'));
+
 	var html = template($("#mapping-tpl").html(), {
 		data : clientList[clientIndex].proxyMappings
 	});
 	$(".main-content").html(html);
+
+	// 代理名称
 	$(".i18n-lan-name").html($.i18n.prop('lan.name'));
+	// 公网端口
 	$(".i18n-lan-inetport").html($.i18n.prop('lan.inetport'));
+	// 客户端网络
 	$(".i18n-lan-ip").html($.i18n.prop('lan.ip'));
+	// 代理状态 0 禁用 1 启用 lan.status i18n-lan-status
+    $(".i18n-lan-status").html($.i18n.prop('lan.status'));
+
+	// 操作
 	$(".i18n-lan-options").html($.i18n.prop('public.options'));
 	$(".mapping-edit").html($.i18n.prop('public.edit'));
 	$(".mapping-delete").html($.i18n.prop('public.delete'));
+
+
+
 	$(".mapping-config").click(function() {
 		window.clientIndex = $(this).attr("data-index");
 		load_page("html/lan/list.html");
 	});
+
 	$(".mapping-edit").click(function() {
 		window.mappingIndex = $(this).attr("data-index");
 		load_page("html/lan/edit.html");
 	});
+
 	$(".mapping-delete").click(function() {
 		var mappingIndex = $(this).attr("data-index");
 		layer.confirm($.i18n.prop('public.confirm.delete'), {
@@ -74,7 +101,11 @@
 		load_page("html/client/list.html");
 	});
 
-	$(".mapping-add").click(function() {
-		load_page("html/lan/add.html");
-	});
+    $(".mapping-add").click(function() {
+        load_page("html/lan/add.html");
+    });
+
+    // $(".mapping-return").click(function() {
+    //     load_page("html/client/tag.html");
+    // });
 </script>
