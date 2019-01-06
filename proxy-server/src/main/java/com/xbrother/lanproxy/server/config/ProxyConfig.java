@@ -588,7 +588,7 @@ public class ProxyConfig implements Serializable {
     public static class ClientProxyMapping {
 
         public ClientProxyMapping(){
-            this.status = "1"; // 默认启用
+            this.status = "0";
         }
 
         /**
