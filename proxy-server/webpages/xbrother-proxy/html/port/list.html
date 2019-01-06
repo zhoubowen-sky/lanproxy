@@ -1,62 +1,142 @@
 <div class="layui-tab layui-tab-brief">
 	<ul class="layui-tab-title site-demo-title">
-		<li class="layui-this tab-title"></li>
+		<li class="layui-this detail-page"></li>
 	</ul>
 	<div class="main-content"></div>
 </div>
-<script id="stat-tpl" type="text/html">
+
+
+<script>
+    $(".layui-this.detail-page").html($.i18n.prop('menu.port.list'));
+	window.clientList = [];
+	api_invoke("/config/detail", {}, function(data) {
+
+	    // {"code":20000,"message":"success","data":[{"name":"1","clientKey":"2","proxyMappings":[
+        // {"inetPort":10000,"lan":"127.0.0.1:8090","name":"e","status":"1"},
+        // {"inetPort":1112,"lan":"127.0.0.1:2","name":"w","status":"1"},
+        // {"inetPort":4443,"lan":"127.0.0.1:77","name":"44","status":"0"}],"status":0,"tag":"啊啊"},{"name":"zbw","clientKey":"zbw","proxyMappings":[
+        // {"inetPort":20000,"lan":"127.0.0.1:8090","name":"HTTP","status":"1"},
+        // {"inetPort":20002,"lan":"127.0.0.1:8090","name":"HTTP2","status":"1"},{"inetPort":20001,"lan":"127.0.0.1:8090","name":"HTTP3","status":"1"},
+        // {"inetPort":20003,"lan":"127.0.0.1:8090","name":"3","status":"0"}],"status":1,"tag":"未注册"}]}
+
+		if (data.code == 20000) {
+			clientList = data.data;
+
+			var html = template($("#client-tpl").html(), data);
+			$(".main-content").html(html);
+			$(".lan-status-open").click(function() {
+                window.clientIndex = $(this).attr("data-index");
+                window.clientIndex2 = $(this).attr("data-index2");
+                console.log("当前序号:", window.clientIndex, window.clientIndex2);
+                console.log(clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["inetPort"]);
+                if (clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] == "1") {
+                    // 不需要更新
+                    layer.alert($.i18n.prop('lan.status.isopen'));
+                }else {
+                    // 修改状态
+                    clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] = "1";
+                    api_invoke("/config/update", clientList, function(data) {
+                        if (data.code != 20000) {
+                            layer.alert(data.message);
+                        } else {
+                            // 刷新页面
+                            load_page("html/port/list.html");
+                        }
+                    });
+                }
+
+            });
+
+			$(".lan-status-close").click(function() {
+				window.clientIndex = $(this).attr("data-index");
+                window.clientIndex2 = $(this).attr("data-index2");
+                console.log("当前序号:", window.clientIndex, window.clientIndex2);
+                console.log(clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["inetPort"]);
+                if (clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] == "0") {
+                    // 不需要更新
+                    layer.alert($.i18n.prop('lan.status.isclose'));
+                }else {
+                    // 修改状态
+                    clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] = "0";
+                    api_invoke("/config/update", clientList, function(data) {
+                        if (data.code != 20000) {
+                            layer.alert(data.message);
+                        } else {
+                            // 刷新页面
+                            load_page("html/port/list.html");
+                        }
+                    });
+                }
+
+
+
+			});
+		} else {
+			alert(data.message);
+		}
+	});
+
+</script>
+
+<script id="client-tpl" type="text/html">
 <table class="layui-table" lay-skin="line">
     <thead>
         <tr>
-            <th class="i18n-inetport"></th>
-            <th class="i18n-inflow"></th>
-            <th class="i18n-outflow"></th>
-            <th class="i18n-channels"></th>
+            <th class="th-client-name"><%:=$.i18n.prop('client.name')%></th>
+            <th class="th-client-key"><%:=$.i18n.prop('client.key')%></th>
+            <th class="th-status"><%:=$.i18n.prop('client.status')%></th>
+            <th class="th-client-tag"><%:=$.i18n.prop('client.tag')%></th>
+
+            <!--代理公网端口-->
+            <th class="th-client-tag"><%:=$.i18n.prop('lan.inetport')%></th>
+            <!--代理状态-->
+            <th class="th-client-tag"><%:=$.i18n.prop('lan.status')%></th>
+
+            <th class="th-options"><%:=$.i18n.prop('public.options')%></th>
         </tr>
     </thead>
     <tbody>
-
     <%for(var i = 0; i < data.length; i++) {%>
-        <tr>
-            <td><%:=data[i].port%></td>
-            <td><%:=bytesToSize(data[i].readBytes)%></td>
-            <td><%:=bytesToSize(data[i].wroteBytes)%></td>
-            <td><%:=data[i].channels%></td>
-        </tr>
-    <%}%>
+        <!--每个配置了代理的客户端都有一行资料展示-->
+        <%for(var j = 0; j < data[i].proxyMappings.length; j++) {%>
 
+            <tr>
+                <td><%:=data[i].name%></td>
+                <td><%:=data[i].clientKey%></td>
+
+                <td>
+                    <% if(data[i].status == 1){ %>
+                    <span class="layui-badge layui-bg-green"><%:=$.i18n.prop('client.status.online')%></span>
+                    <% } else { %>
+                    <span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('client.status.offline')%></span>
+                    <% }%>
+                </td>
+
+                <td>
+                    <span class="layui-badge layui-bg-gray"><%:=data[i].tag%></span>
+                </td>
+
+                <!-- ------------------------------- -->
+                <td>
+                    <span><%:=data[i].proxyMappings[j].inetPort%></span>
+                </td>
+
+                <td>
+                    <% if(data[i].proxyMappings[j].status == "1"){ %>
+                        <span class="layui-badge layui-bg-green"><%:=$.i18n.prop('lan.status.open')%></span>
+                    <% } else { %>
+                        <span class="layui-badge layui-bg-gray"><%:=$.i18n.prop('lan.status.close')%></span>
+                    <% }%>
+                </td>
+                <!-- ------------------------------- -->
+
+                <td>
+                    <a data-index="<%:=i%>" data-index2="<%:=j%>" class="layui-btn layui-btn-mini lan-status-open"><%:=$.i18n.prop('lan.status.open')%></a>
+                    <a data-index="<%:=i%>" data-index2="<%:=j%>" class="layui-btn layui-btn-danger layui-btn-mini lan-status-close"><%:=$.i18n.prop('lan.status.close')%></a>
+                </td>
+            </tr>
+        <%}%>
+    <%}%>
     </tbody>
 </table>
-</script>
-<script>
-    $(".tab-title").html($.i18n.prop('menu.client.statistics'));
-
-	function bytesToSize(bytes) {
-		if (bytes === 0)
-			return '0 B';
-
-		var k = 1000, // or 1024
-		sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ], i = Math.floor(Math.log(bytes) / Math.log(k));
-
-		return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
-	}
-
-	api_invoke("/metrics/get", {}, function(data) {
-		var html = template($("#stat-tpl").html(), {
-			data : data.data
-		});
-		// 统计流入流出的总流量
-        var inflow = 0;
-        var outflow = 0;
-        for (var i = 0; i < data.data.length; i++){
-            inflow = inflow + data.data[i].readBytes;
-            outflow = outflow + data.data[i].wroteBytes;
-        }
-
-		$(".main-content").html(html);
-		$(".i18n-inetport").html($.i18n.prop('statistics.inetport'));
-		$(".i18n-inflow").html($.i18n.prop('statistics.inflow') + " (" + bytesToSize(inflow) + ")");
-		$(".i18n-outflow").html($.i18n.prop('statistics.outflow') + " (" + bytesToSize(outflow) + ")");
-		$(".i18n-channels").html($.i18n.prop('statistics.channels'));
-	});
 </script>
