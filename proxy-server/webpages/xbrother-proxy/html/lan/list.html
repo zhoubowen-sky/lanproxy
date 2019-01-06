@@ -4,7 +4,8 @@
 	</ul>
 	<div class="main-content"></div>
 	<div class="layui-input-block" style="float: left; margin-left: 15px;">
-		<button class="layui-btn mapping-add"></button>
+        <button class="layui-btn mapping-add"></button>
+        <!--<button class="layui-btn layui-btn-primary  mapping-return"></button>-->
 	</div>
 </div>
 <script id="mapping-tpl" type="text/html">
@@ -44,7 +45,10 @@
 </script>
 <script>
     $(".tab-title").html(clientList[clientIndex].name + " - " + $.i18n.prop('lan.proxyconfig'));
+
     $(".mapping-add").html($.i18n.prop('lan.addnewconfig'));
+    // $(".mapping-return").html($.i18n.prop('public.back'));
+
 	var html = template($("#mapping-tpl").html(), {
 		data : clientList[clientIndex].proxyMappings
 	});
@@ -97,7 +101,11 @@
 		load_page("html/client/list.html");
 	});
 
-	$(".mapping-add").click(function() {
-		load_page("html/lan/add.html");
-	});
+    $(".mapping-add").click(function() {
+        load_page("html/lan/add.html");
+    });
+
+    // $(".mapping-return").click(function() {
+    //     load_page("html/client/tag.html");
+    // });
 </script>
