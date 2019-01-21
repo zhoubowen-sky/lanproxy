@@ -166,7 +166,7 @@ public class ProxyChannelManager {
      * @param channel
      */
     public static void removeCmdChannel(Channel channel) {
-        logger.warn("removeCmdChannel channel closed, clear user channels, {}", channel);
+        logger.info("removeCmdChannel channel closed, clear user channels, {}", channel);
         if (channel.attr(CHANNEL_PORT).get() == null) {
             return;
         }
