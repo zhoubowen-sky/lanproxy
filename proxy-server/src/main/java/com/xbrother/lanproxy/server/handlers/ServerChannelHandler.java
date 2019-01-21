@@ -51,7 +51,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
                 handleTransferMessage(ctx, proxyMessage);
                 break;
             default:
-                logger.warn("协议不符合要求");
+                logger.error("协议不符合要求");
                 break;
         }
     }
@@ -90,6 +90,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         if (userChannel != null) {
             // 数据发送完成后再关闭连接，解决http1.0数据传输问题
             userChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+
             /*
             ctx.channel().attr(Constants.NEXT_CHANNEL).remove();
             ctx.channel().attr(Constants.CLIENT_KEY).remove();

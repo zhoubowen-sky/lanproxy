@@ -5,6 +5,7 @@
     <div class="main-content">
 
         <button class="layui-btn layui-btn-primary layui-bg-green download-windows-client">远程维护Windows版客户端下载</button>
+        <button class="layui-btn layui-btn-primary layui-bg-green knowledge">跳转到知识库</button>
 
     </div>
 </div>
@@ -15,6 +16,10 @@
 
     $(".download-windows-client").click(function () {
         window.open("/static/远程维护使用说明.docx");
+    });
+
+    $(".knowledge").click(function () {
+        window.open("http://58.250.243.58:8989/webtype/view4028940a67aab0a501686efa5a7a0594/Pub1.html");
     });
 
 
