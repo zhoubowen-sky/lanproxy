@@ -170,29 +170,6 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="******update build info******" />
-                                <tstamp>
-                                    <format property="TimeSign" pattern="yyyy-MM-dd HH:mm:ss" />
-                                </tstamp>
-                                <replace file="webpages/i18n/lang_zh_CN.properties" summary="true" token="@PACKTIME@" value="${TimeSign}" />
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 </project>
