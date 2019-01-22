@@ -164,7 +164,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         if (registeredFlag){
             // 本地客户端配置文件中有此客户端
             if (ports == null) {
-                logger.info("error clientKey {}, {}", clientKey, ctx.channel());
+                logger.warn("duplicate clientKey {}, {}", clientKey, ctx.channel());
                 ctx.channel().close();
                 return;
             }
