@@ -51,6 +51,7 @@ public class RouteConfig {
         ApiRoute.addRoute("/logout", logout());
         // 获取数据使用量
         ApiRoute.addRoute("/metrics/get", metricsGet());
+        // 获取数据使用量并重置
         ApiRoute.addRoute("/metrics/getandreset", metricsGetAndReset());
         // 处理更新用户信息
         ApiRoute.addRoute("/user/update", userUpdate());
