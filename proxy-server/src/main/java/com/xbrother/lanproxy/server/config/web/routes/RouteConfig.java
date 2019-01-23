@@ -104,17 +104,18 @@ public class RouteConfig {
         });
 
         // 更新配置
+        // TODO 此处需要优化 改成修改哪个客户端就只更改该客户端的信息而不是全改
         ApiRoute.addRoute("/config/update", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
                 request.content().readBytes(buf);
                 String config = new String(buf, Charset.forName("UTF-8"));
-
-                List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {});
                 logger.info("update config params:{}", config);
 
+                List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {});
                 if (clients == null) {
+                    logger.error("前端参数错误");
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
                 }
 
@@ -167,7 +168,7 @@ public class RouteConfig {
                 return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
             }
         });
-
+        // 注销
         ApiRoute.addRoute("/logout", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
@@ -192,7 +193,7 @@ public class RouteConfig {
                 }
             }
         });
-
+        // 获取数据使用量
         ApiRoute.addRoute("/metrics/get", new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
@@ -305,8 +306,15 @@ public class RouteConfig {
             }
         });
 
+        // TODO 获取版本信息
+        ApiRoute.addRoute("/version", new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
 
 
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        });
 
     }
 

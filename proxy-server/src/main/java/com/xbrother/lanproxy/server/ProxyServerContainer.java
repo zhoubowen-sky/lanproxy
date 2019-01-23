@@ -133,10 +133,11 @@ public class ProxyServerContainer implements Container, ConfigChangedListener {
         });
 
         List<Integer> ports = ProxyConfig.getInstance().getUserPorts();
+        // 被禁用的端口会被过滤掉
         for (int port : ports) {
             try {
                 bootstrap.bind(port).get();
-                logger.info("bind user port " + port);
+                logger.warn("bind user port " + port);
             } catch (Exception ex) {
                 // BindException表示该端口已经绑定过
                 if (!(ex.getCause() instanceof BindException)) {
