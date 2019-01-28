@@ -25,7 +25,7 @@
                 }else {
                     // 修改状态
                     clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] = "1";
-                    api_invoke("/config/update", clientList, function(data) {
+                    api_invoke("/config/updateone", clientList[window.clientIndex], function(data) {
                         if (data.code != 20000) {
                             layer.alert(data.message);
                         } else {
@@ -47,7 +47,7 @@
                 }else {
                     // 修改状态
                     clientList[window.clientIndex]["proxyMappings"][window.clientIndex2]["status"] = "0";
-                    api_invoke("/config/update", clientList, function(data) {
+                    api_invoke("/config/updateone", clientList[window.clientIndex], function(data) {
                         if (data.code != 20000) {
                             layer.alert(data.message);
                         } else {
