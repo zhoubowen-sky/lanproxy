@@ -7,12 +7,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.google.gson.*;
 import com.xbrother.lanproxy.common.Config;
@@ -279,6 +274,44 @@ public class ProxyConfig implements Serializable {
             }
         }
 
+    }
+
+
+    public void updateAddOneClient(Client client){
+        boolean isUpdate = false;
+        List<Client> cs = this.getClients();
+        for (Client c : cs){
+            String clientKey = c.getClientKey();
+            if (clientKey.equals(client.getClientKey())){
+                isUpdate = true;
+            }
+        }
+
+        logger.info("更新前配置信息:{}", JsonUtil.object2json(this.getClients()));
+
+        if (isUpdate){
+            logger.warn("当前是更新客户端配置信息:{}", client.getClientKey());
+            Iterator<Client> listIterator = this.getClients().listIterator();
+            while (listIterator.hasNext()){
+                Client c = listIterator.next();
+                if (c.getClientKey().equals(client.getClientKey())){
+                    // 开始修改此客户端信息
+                    ((ListIterator<Client>) listIterator).set(client);
+                }
+            }
+        }else {
+            logger.warn("当前是新增客户端:{}", client.getClientKey());
+            this.clients.add(client);
+        }
+        try {
+            // 开始更新配置信息
+            String newConfig = JsonUtil.object2json(clients);
+            logger.info("更新后的json 配置:{}", newConfig);
+            ProxyConfig.getInstance().update(newConfig);
+        }catch (Exception e){
+            logger.error("更新配置信息错误:{}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
 

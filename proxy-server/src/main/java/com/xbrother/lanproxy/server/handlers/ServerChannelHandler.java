@@ -189,12 +189,10 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             client.setClientKey(clientKey);
             client.setProxyMappings(new ArrayList<ProxyConfig.ClientProxyMapping>());
 
-            List<ProxyConfig.Client> newClients = clients;
-            newClients.add(client);
+            logger.info("客户端自发现更新的配置:{}", JsonUtil.object2json(client));
 
-            String config = JsonUtil.object2json(newClients);
-            logger.info("客户端自发现更新的配置:{}", config);
-            ProxyConfig.getInstance().update(config);
+            ProxyConfig.getInstance().updateAddOneClient(client);
+
             ctx.channel().close();
             return;
         }

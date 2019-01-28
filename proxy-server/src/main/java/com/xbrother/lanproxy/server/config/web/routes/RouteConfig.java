@@ -43,8 +43,10 @@ public class RouteConfig {
         ApiRoute.addMiddleware(preRequest());
         // 获取配置详细信息
         ApiRoute.addRoute("/config/detail", configDetail());
-        // 更新配置 TODO 此处需要优化 改成修改哪个客户端就只更改该客户端的信息而不是全改
+        // 更新配置
         ApiRoute.addRoute("/config/update", configUpdate());
+        // 新增或修改某一个客户端的配置信息
+        ApiRoute.addRoute("/config/updateone", configUpdateOne());
         // 登录
         ApiRoute.addRoute("/login", login());
         // 注销
@@ -65,6 +67,35 @@ public class RouteConfig {
         ApiRoute.addRoute("/version", version());
 
     }
+
+    private static RequestHandler configUpdateOne(){
+        return new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                logger.info("update config params:{}", config);
+                Client client = JsonUtil.json2object(config, new TypeToken<Client>(){});
+                if (client == null){
+                    logger.error("前端参数错误");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
+                }
+
+                try {
+                    // 开始更新客户端配置信息
+                    ProxyConfig.getInstance().updateAddOneClient(client);
+
+                }catch (Exception e){
+                    logger.error("config update error", e);
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, e.getMessage());
+                }
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        };
+    }
+
 
     private static RequestMiddleware preRequest(){
         return new RequestMiddleware() {
