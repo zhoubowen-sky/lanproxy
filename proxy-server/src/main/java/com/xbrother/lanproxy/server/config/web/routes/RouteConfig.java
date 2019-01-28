@@ -47,6 +47,8 @@ public class RouteConfig {
         ApiRoute.addRoute("/config/update", configUpdate());
         // 新增或修改某一个客户端的配置信息
         ApiRoute.addRoute("/config/updateone", configUpdateOne());
+        // 删除一个客户端
+        ApiRoute.addRoute("/config/deleteone", configDeleteOne());
         // 登录
         ApiRoute.addRoute("/login", login());
         // 注销
@@ -68,6 +70,34 @@ public class RouteConfig {
 
     }
 
+    private static RequestHandler configDeleteOne(){
+        return new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                logger.info("delete config params:{}", config);
+                Client client = JsonUtil.json2object(config, new TypeToken<Client>(){});
+                if (client == null){
+                    logger.error("参数错误");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
+                }
+
+                try {
+                    // 开始更新客户端配置信息
+                    ProxyConfig.getInstance().deleteOneClient(client);
+
+                }catch (Exception e){
+                    logger.error("config delete error", e);
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, e.getMessage());
+                }
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        };
+    }
+
     private static RequestHandler configUpdateOne(){
         return new RequestHandler() {
             @Override
@@ -75,7 +105,7 @@ public class RouteConfig {
                 byte[] buf = new byte[request.content().readableBytes()];
                 request.content().readBytes(buf);
                 String config = new String(buf, Charset.forName("UTF-8"));
-                logger.info("update config params:{}", config);
+                logger.info("update one config params:{}", config);
                 Client client = JsonUtil.json2object(config, new TypeToken<Client>(){});
                 if (client == null){
                     logger.error("前端参数错误");

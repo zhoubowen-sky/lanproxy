@@ -276,6 +276,26 @@ public class ProxyConfig implements Serializable {
 
     }
 
+    public void deleteOneClient(Client client){
+        Iterator<Client> listIterator = this.getClients().listIterator();
+        while (listIterator.hasNext()){
+            Client c = listIterator.next();
+            if (c.getClientKey().equals(client.getClientKey())){
+                // 开始修改此客户端信息
+                listIterator.remove();
+            }
+        }
+
+        try {
+            String newConfig = JsonUtil.object2json(clients);
+            logger.info("更新后的json 配置信息:{}", newConfig);
+            ProxyConfig.getInstance().update(newConfig);
+        }catch (Exception e){
+            logger.error("更新配置信息错误:{}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public void updateAddOneClient(Client client){
         boolean isUpdate = false;
@@ -288,7 +308,6 @@ public class ProxyConfig implements Serializable {
         }
 
         logger.info("更新前配置信息:{}", JsonUtil.object2json(this.getClients()));
-
         if (isUpdate){
             logger.warn("当前是更新客户端配置信息:{}", client.getClientKey());
             Iterator<Client> listIterator = this.getClients().listIterator();
