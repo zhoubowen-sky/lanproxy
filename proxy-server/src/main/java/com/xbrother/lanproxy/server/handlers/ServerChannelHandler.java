@@ -91,12 +91,6 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             // 数据发送完成后再关闭连接，解决http1.0数据传输问题
             userChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
 
-            /*
-            ctx.channel().attr(Constants.NEXT_CHANNEL).remove();
-            ctx.channel().attr(Constants.CLIENT_KEY).remove();
-            ctx.channel().attr(Constants.USER_ID).remove();
-            */
-
             ctx.channel().attr(Constants.NEXT_CHANNEL).set(null);
             ctx.channel().attr(Constants.CLIENT_KEY).set(null);
             ctx.channel().attr(Constants.USER_ID).set(null);

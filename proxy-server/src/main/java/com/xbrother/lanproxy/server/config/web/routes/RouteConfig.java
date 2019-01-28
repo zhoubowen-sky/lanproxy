@@ -86,6 +86,11 @@ public class RouteConfig {
 
                 try {
                     // 开始更新客户端配置信息
+                    Channel channel = ProxyChannelManager.getCmdChannel(client.getClientKey());
+                    if (channel != null){
+                        ProxyChannelManager.removeCmdChannel(channel);
+                    }
+
                     ProxyConfig.getInstance().deleteOneClient(client);
 
                 }catch (Exception e){

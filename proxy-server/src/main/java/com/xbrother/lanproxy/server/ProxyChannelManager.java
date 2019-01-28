@@ -50,7 +50,7 @@ public class ProxyChannelManager {
                     Channel proxyChannel = ite.next().getValue();
                     String clientKey = proxyChannel.attr(CHANNEL_CLIENT_KEY).get();
 
-                    // 去除已经去掉的clientKey配置 client 删除时 channel 同样删除
+                    // 去除已经去掉的 clientKey 配置,  client 删除时 channel 同样删除
                     Set<String> clientKeySet = ProxyConfig.getInstance().getClientKeySet();
                     if (!clientKeySet.contains(clientKey)) {
                         removeCmdChannel(proxyChannel);
