@@ -34,8 +34,7 @@
 		            btn : [ $.i18n.prop('public.ok'), $.i18n.prop('public.cancel') ]
 		        }, function(i) {
 					layer.close(i);
-					clientList.splice(clientIndex, 1);
-					api_invoke("/config/update", clientList, function(data) {
+					api_invoke("/config/deleteone", clientList[clientIndex], function(data) {
 						if (data.code != 20000) {
 							layer.alert(data.message);
 						} else {

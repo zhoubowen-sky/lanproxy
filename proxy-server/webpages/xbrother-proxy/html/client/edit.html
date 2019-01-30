@@ -15,9 +15,9 @@
 	  <div class="layui-form-item">
         <label class="layui-form-label i18n-client-key"></label>
         <div class="layui-input-inline">
-          <input type="text" name="clientKey" autocomplete="off" placeholder="" class="layui-input">
+          <input type="text" name="clientKey" autocomplete="off" placeholder="" readonly="readonly" class="layui-input">
         </div>
-        <div class="layui-form-mid"><a class="layui-btn layui-btn-mini random-key random"></a></div>
+        <!--<div class="layui-form-mid"><a class="layui-btn layui-btn-mini random-key random"></a></div>-->
       </div>
 
 
@@ -56,20 +56,22 @@ $("input[name='name']").val(clientList[clientIndex].name);
 $("input[name='clientKey']").val(clientList[clientIndex].clientKey);
 $("input[name='tag']").val(clientList[clientIndex].tag);
 
-$(".random").click(function(){
-	$("input[name='clientKey']").val(uuid());
-});
 
 $(".update").click(function(){
-	clientList[clientIndex]['name'] = $("input[name='name']").val();
+    clientList[clientIndex]['name'] = $("input[name='name']").val();
     clientList[clientIndex]['clientKey'] = $("input[name='clientKey']").val();
     clientList[clientIndex]['tag'] = $("input[name='tag']").val();
-    api_invoke("/config/update", clientList, function(data) {
+
+    var clientInfo = JSON.stringify(clientList[clientIndex])
+
+    console.log("更新客户端配置信息:", clientInfo);
+
+    api_invoke("/config/updateone", clientList[clientIndex], function(data) {
         if (data.code == 20000) {
             layer.alert($.i18n.prop('public.notice.updatesuccess'), {title: $.i18n.prop('public.tips')}, function(index){
                 layer.close(index);
                 location.reload();
-            }); 
+            });
         }
     });
 });
@@ -78,17 +80,17 @@ $(".back").click(function(){
 	load_page("html/client/list.html");
 });
 
-function uuid() {
-	var s = [];
-	var hexDigits = "0123456789abcdef";
-	for (var i = 0; i < 36; i++) {
-	  s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-	}
-	s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
-	s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
-	s[8] = s[13] = s[18] = s[23] = "";
-	
-	var uuid = s.join("");
-	return uuid;
-}
+// function uuid() {
+// 	var s = [];
+// 	var hexDigits = "0123456789abcdef";
+// 	for (var i = 0; i < 36; i++) {
+// 	  s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+// 	}
+// 	s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+// 	s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+// 	s[8] = s[13] = s[18] = s[23] = "";
+//
+// 	var uuid = s.join("");
+// 	return uuid;
+// }
 </script>

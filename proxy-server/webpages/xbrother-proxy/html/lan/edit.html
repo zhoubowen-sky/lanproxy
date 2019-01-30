@@ -111,12 +111,12 @@ $(".update").click(function(){
         status: status
     };
 
-    api_invoke("/config/update", clientList, function(data) {
+    api_invoke("/config/updateone", clientList[clientIndex], function(data) {
         if (data.code == 20000) {
             layer.alert($.i18n.prop('public.notice.updatesuccess'), {title:"Tips"}, function(index){
                 layer.close(index);
                 load_page("html/lan/list.html");
-            }); 
+            });
         }
     });
 });

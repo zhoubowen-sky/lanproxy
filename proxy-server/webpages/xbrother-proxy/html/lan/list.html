@@ -88,7 +88,7 @@
         }, function(i) {
 			layer.close(i);
 			clientList[clientIndex].proxyMappings.splice(mappingIndex, 1);
-			api_invoke("/config/update", clientList, function(data) {
+			api_invoke("/config/updateone", clientList[clientIndex], function(data) {
 				if (data.code != 20000) {
 					layer.alert(data.message);
 				} else {

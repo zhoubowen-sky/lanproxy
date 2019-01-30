@@ -7,12 +7,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.google.gson.*;
 import com.xbrother.lanproxy.common.Config;
@@ -281,17 +276,75 @@ public class ProxyConfig implements Serializable {
 
     }
 
+    public void deleteOneClient(Client client){
+        Iterator<Client> listIterator = this.clients.listIterator();
+        while (listIterator.hasNext()){
+            Client c = listIterator.next();
+            if (c.getClientKey().equals(client.getClientKey())){
+                // 开始修改此客户端信息
+                listIterator.remove();
+            }
+        }
+
+        try {
+            String newConfig = JsonUtil.object2json(clients);
+            logger.info("更新后的json 配置信息:{}", newConfig);
+            ProxyConfig.getInstance().update(newConfig);
+
+        }catch (Exception e){
+            logger.error("更新配置信息错误:{}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void updateAddOneClient(Client client){
+        boolean isUpdate = false;
+        List<Client> cs = this.getClients();
+        for (Client c : cs){
+            String clientKey = c.getClientKey();
+            if (clientKey.equals(client.getClientKey())){
+                isUpdate = true;
+            }
+        }
+
+        logger.info("更新前配置信息:{}", JsonUtil.object2json(this.getClients()));
+        if (isUpdate){
+            logger.warn("当前是更新客户端配置信息:{}", client.getClientKey());
+            Iterator<Client> listIterator = this.clients.listIterator();
+            while (listIterator.hasNext()){
+                Client c = listIterator.next();
+                if (c.getClientKey().equals(client.getClientKey())){
+                    // 开始修改此客户端信息
+                    ((ListIterator<Client>) listIterator).set(client);
+                }
+            }
+        }else {
+            logger.warn("当前是新增客户端:{}", client.getClientKey());
+            this.clients.add(client);
+        }
+        try {
+            // 开始更新配置信息
+            String newConfig = JsonUtil.object2json(clients);
+            logger.info("更新后的json 配置:{}", newConfig);
+            ProxyConfig.getInstance().update(newConfig);
+        }catch (Exception e){
+            logger.error("更新配置信息错误:{}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * 解析客户端的配置文件
      */
-    public void update(String proxyMappingConfigJson) {
-
+    public synchronized void update(String proxyMappingConfigJson) {
         File file = new File(CONFIG_FILE);
         try {
             if (proxyMappingConfigJson == null && file.exists()) {
-                // 此时传入为空 且客户端配置文件存在
+                // 此时传入为空 且客户端配置文件存在则读取配置文件
                 proxyMappingConfigJson = fileToString(file);
+                logger.info("从文件中读取的代理配置信息:", proxyMappingConfigJson);
             }
         } catch (Exception e) {
             logger.error("打开客户端配置文件错误:", e.getMessage());
@@ -304,6 +357,7 @@ public class ProxyConfig implements Serializable {
             logger.warn("客户端配置文件 clients is null");
             clients = new ArrayList<Client>();
         }
+
         // 代理服务器客户端 key 与端口映射关系 clientKey1 -> 50001
         Map<String, List<Integer>> clientInetPortMapping = new HashMap<String, List<Integer>>();
         // 代理服务器对外端口 与客户端后台真实IP映射关系  50001 -> 127.0.0.1:22
@@ -314,7 +368,7 @@ public class ProxyConfig implements Serializable {
             String clientKey = client.getClientKey();
 
             if (clientInetPortMapping.containsKey(clientKey)) {
-                logger.warn("客户端密钥重复:" + clientKey + " 请更换其他的密钥");
+                logger.error("配置信息中 客户端密钥重复:" + clientKey + " 请更换其他的密钥");
                 throw new IllegalArgumentException("客户端密钥重复:" + clientKey + " 请更换其他的密钥");
             }
 
@@ -325,13 +379,13 @@ public class ProxyConfig implements Serializable {
             for (ClientProxyMapping mapping : mappings) {
                 // 将处于禁用状态的代理跳过
                 if (!mapping.getStatus().equals("1")){
-                    logger.warn("端口状态:" + mapping.getStatus() + "端口未启用，直接跳过，端口:" + mapping.getInetPort());
+                    logger.warn("端口状态:" + mapping.getStatus() + "端口未启用，直接跳过端口:" + mapping.getInetPort());
                     continue;
                 }
                 Integer port = mapping.getInetPort();
                 ports.add(port);
                 if (inetPortLanInfoMapping.containsKey(port)) {
-                    logger.warn("代理中心服务器端口重复:" + port + " 请更换端口");
+                    logger.error("配置信息中 代理中心服务器端口重复:" + port + " 请更换端口");
                     throw new IllegalArgumentException("代理中心服务器端口重复:" + port + " 请更换其他未使用的端口");
                 }
 
@@ -364,6 +418,7 @@ public class ProxyConfig implements Serializable {
             }
         }
 
+        // 通知配置变化
         notifyconfigChangedListeners();
     }
 
@@ -433,7 +488,6 @@ public class ProxyConfig implements Serializable {
     public List<Integer> getUserPorts() {
         List<Integer> ports = new ArrayList<Integer>();
         Iterator<Integer> ite = inetPortLanInfoMapping.keySet().iterator();
-        // 此处需要判断 代理启用状态 只有启用的端口才允许绑定
         while (ite.hasNext()) {
             ports.add(ite.next());
         }
@@ -677,6 +731,5 @@ public class ProxyConfig implements Serializable {
             return s;
         }
     }
-
 
 }

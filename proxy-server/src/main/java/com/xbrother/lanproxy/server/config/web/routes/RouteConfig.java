@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 
 /**
  * API 接口实现
- *
  */
 public class RouteConfig {
 
@@ -41,8 +40,100 @@ public class RouteConfig {
     private static Map<String,String> usernameTokenMap = new ConcurrentHashMap<>();
 
     public static void init() {
+        ApiRoute.addMiddleware(preRequest());
+        // 获取配置详细信息
+        ApiRoute.addRoute("/config/detail", configDetail());
+        // 更新配置
+        ApiRoute.addRoute("/config/update", configUpdate());
+        // 新增或修改某一个客户端的配置信息
+        ApiRoute.addRoute("/config/updateone", configUpdateOne());
+        // 删除一个客户端
+        ApiRoute.addRoute("/config/deleteone", configDeleteOne());
+        // 登录
+        ApiRoute.addRoute("/login", login());
+        // 注销
+        ApiRoute.addRoute("/logout", logout());
+        // 获取数据使用量
+        ApiRoute.addRoute("/metrics/get", metricsGet());
+        // 获取数据使用量并重置
+        ApiRoute.addRoute("/metrics/getandreset", metricsGetAndReset());
+        // 处理更新用户信息
+        ApiRoute.addRoute("/user/update", userUpdate());
+        // 获取所有用户的列表以及详情
+        ApiRoute.addRoute("/user/detail", userDetail());
+        // 新增用户
+        ApiRoute.addRoute("/user/add", userAdd());
+        // 删除用户
+        ApiRoute.addRoute("/user/delete", userDelete());
+        // TODO 获取版本信息
+        ApiRoute.addRoute("/version", version());
 
-        ApiRoute.addMiddleware(new RequestMiddleware() {
+    }
+
+    private static RequestHandler configDeleteOne(){
+        return new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                logger.info("delete config params:{}", config);
+                Client client = JsonUtil.json2object(config, new TypeToken<Client>(){});
+                if (client == null){
+                    logger.error("参数错误");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
+                }
+
+                try {
+                    // 开始更新客户端配置信息
+                    Channel channel = ProxyChannelManager.getCmdChannel(client.getClientKey());
+                    if (channel != null){
+                        ProxyChannelManager.removeCmdChannel(channel);
+                    }
+
+                    ProxyConfig.getInstance().deleteOneClient(client);
+
+                }catch (Exception e){
+                    logger.error("config delete error", e);
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, e.getMessage());
+                }
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        };
+    }
+
+    private static RequestHandler configUpdateOne(){
+        return new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                byte[] buf = new byte[request.content().readableBytes()];
+                request.content().readBytes(buf);
+                String config = new String(buf, Charset.forName("UTF-8"));
+                logger.info("update one config params:{}", config);
+                Client client = JsonUtil.json2object(config, new TypeToken<Client>(){});
+                if (client == null){
+                    logger.error("前端参数错误");
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
+                }
+
+                try {
+                    // 开始更新客户端配置信息
+                    ProxyConfig.getInstance().updateAddOneClient(client);
+
+                }catch (Exception e){
+                    logger.error("config update error", e);
+                    return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, e.getMessage());
+                }
+
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        };
+    }
+
+
+    private static RequestMiddleware preRequest(){
+        return new RequestMiddleware() {
             @Override
             public void preRequest(FullHttpRequest request) {
                 String cookieHeader = request.headers().get(HttpHeaders.Names.COOKIE);
@@ -84,10 +175,11 @@ public class RouteConfig {
 
                 logger.info("handle request for api {}", request.getUri());
             }
-        });
+        };
+    }
 
-        // 获取配置详细信息
-        ApiRoute.addRoute("/config/detail", new RequestHandler() {
+    private static RequestHandler configDetail(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 List<Client> clients = ProxyConfig.getInstance().getClients();
@@ -101,20 +193,21 @@ public class RouteConfig {
                 }
                 return ResponseInfo.build(ProxyConfig.getInstance().getClients());
             }
-        });
+        };
+    }
 
-        // 更新配置
-        ApiRoute.addRoute("/config/update", new RequestHandler() {
+    private static RequestHandler configUpdate(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
                 request.content().readBytes(buf);
                 String config = new String(buf, Charset.forName("UTF-8"));
-
-                List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {});
                 logger.info("update config params:{}", config);
 
+                List<Client> clients = JsonUtil.json2object(config, new TypeToken<List<Client>>() {});
                 if (clients == null) {
+                    logger.error("前端参数错误");
                     return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "Error json config");
                 }
 
@@ -127,10 +220,11 @@ public class RouteConfig {
 
                 return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
             }
-        });
+        };
+    }
 
-        // 登录
-        ApiRoute.addRoute("/login", new RequestHandler() {
+    private static RequestHandler login(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -166,9 +260,11 @@ public class RouteConfig {
 
                 return ResponseInfo.build(ResponseInfo.CODE_INVILID_PARAMS, "用户名或密码错误");
             }
-        });
+        };
+    }
 
-        ApiRoute.addRoute("/logout", new RequestHandler() {
+    private static RequestHandler logout(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -191,24 +287,29 @@ public class RouteConfig {
                     }
                 }
             }
-        });
+        };
+    }
 
-        ApiRoute.addRoute("/metrics/get", new RequestHandler() {
+    private static RequestHandler metricsGet(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 return ResponseInfo.build(MetricsCollector.getAllMetrics());
             }
-        });
+        };
+    }
 
-        ApiRoute.addRoute("/metrics/getandreset", new RequestHandler() {
+    private static RequestHandler metricsGetAndReset(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 return ResponseInfo.build(MetricsCollector.getAndResetAllMetrics());
             }
-        });
+        };
+    }
 
-        // 处理更新用户信息
-        ApiRoute.addRoute("/user/update", new RequestHandler() {
+    private static RequestHandler userUpdate(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -229,19 +330,21 @@ public class RouteConfig {
 
                 return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
             }
-        });
+        };
+    }
 
-        // 获取所有用户的列表以及详情
-        ApiRoute.addRoute("/user/detail", new RequestHandler() {
+    private static RequestHandler userDetail(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 List<User> users = ProxyConfig.getInstance().getUsers();
                 return ResponseInfo.build(users);
             }
-        });
+        };
+    }
 
-        // 新增用户
-        ApiRoute.addRoute("/user/add", new RequestHandler() {
+    private static RequestHandler userAdd(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -276,10 +379,11 @@ public class RouteConfig {
                     return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
                 }
             }
-        });
+        };
+    }
 
-        // 删除用户
-        ApiRoute.addRoute("/user/delete", new RequestHandler() {
+    private static RequestHandler userDelete(){
+        return new RequestHandler() {
             @Override
             public ResponseInfo request(FullHttpRequest request) {
                 byte[] buf = new byte[request.content().readableBytes()];
@@ -303,11 +407,16 @@ public class RouteConfig {
                 ProxyConfig.getInstance().updateUserInfo(s);
                 return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
             }
-        });
+        };
+    }
 
-
-
-
+    private static RequestHandler version(){
+        return new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "success");
+            }
+        };
     }
 
     public static TwoTuple checkUserAuthority(String username, String password) {
@@ -376,7 +485,6 @@ public class RouteConfig {
             this.second = second;
         }
     }
-
 
 
 }

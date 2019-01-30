@@ -91,12 +91,6 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             // 数据发送完成后再关闭连接，解决http1.0数据传输问题
             userChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
 
-            /*
-            ctx.channel().attr(Constants.NEXT_CHANNEL).remove();
-            ctx.channel().attr(Constants.CLIENT_KEY).remove();
-            ctx.channel().attr(Constants.USER_ID).remove();
-            */
-
             ctx.channel().attr(Constants.NEXT_CHANNEL).set(null);
             ctx.channel().attr(Constants.CLIENT_KEY).set(null);
             ctx.channel().attr(Constants.USER_ID).set(null);
@@ -164,7 +158,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
         if (registeredFlag){
             // 本地客户端配置文件中有此客户端
             if (ports == null) {
-                logger.info("error clientKey {}, {}", clientKey, ctx.channel());
+                logger.warn("duplicate clientKey {}, {}", clientKey, ctx.channel());
                 ctx.channel().close();
                 return;
             }
@@ -189,12 +183,10 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<ProxyMessa
             client.setClientKey(clientKey);
             client.setProxyMappings(new ArrayList<ProxyConfig.ClientProxyMapping>());
 
-            List<ProxyConfig.Client> newClients = clients;
-            newClients.add(client);
+            logger.info("客户端自发现更新的配置:{}", JsonUtil.object2json(client));
 
-            String config = JsonUtil.object2json(newClients);
-            logger.info("客户端自发现更新的配置:{}", config);
-            ProxyConfig.getInstance().update(config);
+            ProxyConfig.getInstance().updateAddOneClient(client);
+
             ctx.channel().close();
             return;
         }
