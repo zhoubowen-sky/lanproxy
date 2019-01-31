@@ -309,6 +309,9 @@ public class ProxyConfig implements Serializable {
         }
 
         logger.info("更新前配置信息:{}", JsonUtil.object2json(this.getClients()));
+
+        Client oriClientInfo = new Client();
+
         if (isUpdate){
             logger.warn("当前是更新客户端配置信息:{}", client.getClientKey());
             Iterator<Client> listIterator = this.clients.listIterator();
@@ -316,7 +319,9 @@ public class ProxyConfig implements Serializable {
                 Client c = listIterator.next();
                 if (c.getClientKey().equals(client.getClientKey())){
                     // 开始修改此客户端信息
+                    oriClientInfo = c;
                     ((ListIterator<Client>) listIterator).set(client);
+                    break;
                 }
             }
         }else {
@@ -330,7 +335,21 @@ public class ProxyConfig implements Serializable {
             ProxyConfig.getInstance().update(newConfig);
         }catch (Exception e){
             logger.error("更新配置信息错误:{}", e.getMessage());
-            throw new RuntimeException(e);
+            if (isUpdate){
+                // 有端口重复
+                Iterator<Client> iterator = this.clients.listIterator();
+                while (iterator.hasNext()){
+                    Client c = iterator.next();
+                    if (c.getClientKey().equals(client.getClientKey())){
+                        ((ListIterator<Client>) iterator).set(oriClientInfo);
+                        break;
+                    }
+                }
+            }else {
+                // 有端口重复
+                this.clients.remove(client);
+            }
+            throw new IllegalArgumentException(e);
         }
     }
 
