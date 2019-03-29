@@ -67,7 +67,18 @@ public class RouteConfig {
         ApiRoute.addRoute("/user/delete", userDelete());
         // TODO 获取版本信息
         ApiRoute.addRoute("/version", version());
+        // 暴露给客户端用于检测网络连通状态的接口
+        ApiRoute.addRoute("/checknetwork", checkNetwork());
 
+    }
+
+    private static RequestHandler checkNetwork(){
+        return new RequestHandler() {
+            @Override
+            public ResponseInfo request(FullHttpRequest request) {
+                return ResponseInfo.build(ResponseInfo.CODE_OK, "check network success");
+            }
+        };
     }
 
     private static RequestHandler configDeleteOne(){
@@ -131,7 +142,6 @@ public class RouteConfig {
         };
     }
 
-
     private static RequestMiddleware preRequest(){
         return new RequestMiddleware() {
             @Override
@@ -169,7 +179,9 @@ public class RouteConfig {
                     }
                 }
 
-                if (!request.getUri().equals("/login") && !authenticated) {
+                // 过滤掉 login 和 checknetwork
+                if (!(request.getUri().equals("/login") || request.getUri().equals("/checknetwork")) && !authenticated){
+//                    if (!request.getUri().equals("/login") && !authenticated){
                     throw new ContextException(ResponseInfo.CODE_UNAUTHORIZED);
                 }
 
